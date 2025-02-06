@@ -16,7 +16,7 @@ export const Orders=sequelize.define('Orders',{
         allowNull:false,
         references:{
             model:Users,
-            key:'CustomerID'
+            key:'UserID'
         },
         onDelete:'CASCADE'
     },

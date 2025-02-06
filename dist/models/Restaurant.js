@@ -33,7 +33,7 @@ exports.Restaurant = database_1.sequelize.define('Restaurant', {
         allowNull: false,
         references: {
             model: Users_1.Users,
-            key: 'CustomerID'
+            key: 'UserID'
         },
         onDelete: 'CASCADE'
     },

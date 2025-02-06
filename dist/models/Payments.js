@@ -17,7 +17,7 @@ exports.Payments = database_1.sequelize.define('Payments', {
         allowNull: false,
         references: {
             model: Users_1.Users,
-            key: 'CustomerID'
+            key: 'UserID'
         },
         onDelete: 'CASCADE'
     },

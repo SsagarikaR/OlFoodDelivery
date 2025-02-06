@@ -13,7 +13,7 @@ export const checkToken=(req:Request,res:Response,next:NextFunction)=>{
     
       try {
         const decoded= jwt.verify(token, "jsomwebtoken");
-        req.body.customerID=decoded;
+        req.body.UserID=decoded;
         next();
       } catch (error) {
           res.status(400).json({message:"Token Not Found"});

@@ -27,7 +27,7 @@ exports.RatingDriver = database_1.sequelize.define('RatingDriver', {
         allowNull: false,
         references: {
             model: Users_1.Users,
-            key: 'CustomerID'
+            key: 'UserID'
         },
         onDelete: 'CASCADE'
     },

@@ -1,22 +1,22 @@
 import { DataTypes } from "sequelize";
-import {sequelize} from '../config/database'
+import {sequelize} from '../config/database';
 
 export const Users=sequelize.define('Users',{
-    CustomerID:{
+    UserID:{
         type:DataTypes.INTEGER,
         autoIncrement:true,
         primaryKey:true,
         allowNull:false
     },
-    CustomerName:{
+    UserName:{
         type:DataTypes.STRING,
         allowNull:false
     },
-    CustomerEmail:{
+    UserEmail:{
         type:DataTypes.STRING,
         allowNull:false,
     },
-    CustomerContactNo:{
+    UserContactNo:{
         type:DataTypes.STRING(15),
         allowNull:false,
     },

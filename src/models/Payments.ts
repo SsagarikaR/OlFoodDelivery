@@ -15,7 +15,7 @@ export const Payments=sequelize.define('Payments',{
         allowNull:false,
         references:{
             model:Users,
-            key:'CustomerID'
+            key:'UserID'
         },
         onDelete:'CASCADE'
     },

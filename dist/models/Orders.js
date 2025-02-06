@@ -17,7 +17,7 @@ exports.Orders = database_1.sequelize.define('Orders', {
         allowNull: false,
         references: {
             model: Users_1.Users,
-            key: 'CustomerID'
+            key: 'UserID'
         },
         onDelete: 'CASCADE'
     },

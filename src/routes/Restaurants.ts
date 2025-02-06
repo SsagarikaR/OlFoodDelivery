@@ -15,7 +15,7 @@ interface forAddress{
 const router=Router();
 
 router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=>{
-    const OwnerID=req.body.customerID.identifire;
+    const OwnerID=req.body.UserID.identifire;
     const {City,PINCode,street,RestaurantName,RestaurantContactNo}=req.body
     // console.log(req.body)
     let addressID:number;

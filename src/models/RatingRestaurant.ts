@@ -25,7 +25,7 @@ export const RatingRestaurants=sequelize.define('RatingRestaurants',{
         allowNull:false,
         references:{
             model:Users,
-            key:'CustomerID'
+            key:'UserID'
         },
         onDelete:'CASCADE'
     },

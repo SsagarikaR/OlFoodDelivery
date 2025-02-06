@@ -15,7 +15,7 @@ const checkToken = (req, res, next) => {
     console.log("tokennn ", token);
     try {
         const decoded = jsonwebtoken_1.default.verify(token, "jsomwebtoken");
-        req.body.customerID = decoded;
+        req.body.UserID = decoded;
         next();
     }
     catch (error) {

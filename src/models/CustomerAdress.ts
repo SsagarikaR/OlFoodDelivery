@@ -15,7 +15,7 @@ export const Customer_Address=sequelize.define('Customer_Address',{
         allowNull:false,
         references:{
             model:Users,
-            key:'CustomerID'
+            key:'UserID'
         },
         onDelete:'CASCADE'
     },

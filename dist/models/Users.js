@@ -4,21 +4,21 @@ exports.Users = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
 exports.Users = database_1.sequelize.define('Users', {
-    CustomerID: {
+    UserID: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false
     },
-    CustomerName: {
+    UserName: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false
     },
-    CustomerEmail: {
+    UserEmail: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
-    CustomerContactNo: {
+    UserContactNo: {
         type: sequelize_1.DataTypes.STRING(15),
         allowNull: false,
     },

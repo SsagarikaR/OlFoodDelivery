@@ -8,7 +8,7 @@ const Restaurant_1 = require("../models/Restaurant");
 const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
 router.post("/register", authorization_1.checkToken, async (req, res) => {
-    const OwnerID = req.body.customerID.identifire;
+    const OwnerID = req.body.UserID.identifire;
     const { City, PINCode, street, RestaurantName, RestaurantContactNo } = req.body;
     // console.log(req.body)
     let addressID;
