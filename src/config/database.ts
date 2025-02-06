@@ -16,9 +16,9 @@ try {
 //  console.log( await sequelize.sync({alter:true}));
 // })();
   
-// sequelize.sync({ alter: true }).then((data) => {
-//   console.log("database synced successfully");
-//   // console.log(data);
-// }).catch((error)=>{
-//   console.log("Error syncing databse:",error);
-// });
+sequelize.sync().then((data) => {
+  console.log("database synced successfully");
+  // console.log(data);
+}).catch((error)=>{
+  console.log("Error syncing databse:",error);
+});

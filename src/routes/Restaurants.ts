@@ -1,7 +1,7 @@
 import { checkToken } from "../config/authorization";
 import { sequelize } from "../config/database";
 import { Router,Request,Response } from "express";
-import { Address } from "../models/Address";
+import {Addresses} from "../models/Address";
 import { Restaurant } from "../models/Restaurant";
 import { QueryTypes } from "sequelize";
 
@@ -18,10 +18,10 @@ router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=
     const OwnerID=req.body.UserID.identifire;
     const {City,PINCode,street,RestaurantName,RestaurantContactNo}=req.body
     // console.log(req.body)
-    let addressID:number;
+    let AddressID:number;
     try{
         const IsAddressExist:forAddress[]=await sequelize.query(
-            `SELECT * FROM Address WHERE City=:City AND PINCode=:PINCode AND street=:street`,
+            `SELECT * FROM Addresses WHERE City=:City AND PINCode=:PINCode AND street=:street`,
             {
                 replacements:{
                     City:City,
@@ -31,21 +31,44 @@ router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=
                 type:QueryTypes.SELECT
             }
         )
-        console.log(IsAddressExist);
+        // console.log(OwnerID);
+        // console.log(IsAddressExist);
+        
         if(IsAddressExist.length>0){
-            addressID=IsAddressExist[0].AddressID;
+            AddressID=IsAddressExist[0].AddressID;
         }
         else{
-            const newAddress=await Address.create({City:City,PINCode:PINCode,street:street});
+            const newAddress=await Addresses.create({City:City,PINCode:PINCode,street:street});
             console.log(newAddress,"newAddress");
-            addressID=newAddress.dataValues.AddressID;
+            AddressID=newAddress.dataValues.AddressID;
         }
-        console.log(addressID);
-        const newRestaurant=await Restaurant.create({RestaurantName:RestaurantName,RestaurantContactNo:RestaurantContactNo,AddressID:addressID,OwnerID:OwnerID})
-        console.log(newRestaurant,"newRestaurant");
+        // console.log(AddressID);
+
+        const IsRestaurantExist=await sequelize.query(
+           `SELECT * FROM Restaurant WHERE 
+           RestaurantName=:RestaurantName AND 
+           RestaurantContactNo=:RestaurantContactNo AND 
+           AddressID=:AddressID AND OwnerID=:OwnerID`,
+           {
+            replacements:{
+                            RestaurantName:RestaurantName,
+                            RestaurantContactNo:RestaurantContactNo,
+                            AddressID:AddressID,
+                            OwnerID:OwnerID
+                        },
+            type:QueryTypes.SELECT
+           }
+        )
+        console.log(IsRestaurantExist,"IsRestaurantExist")
+        if(IsRestaurantExist.length>0){
+            return res.json({message:"This restaurant is already registered"})
+        }
+        const newRestaurant=await Restaurant.create({RestaurantName: RestaurantName,RestaurantContactNo: RestaurantContactNo,AddressID: AddressID,OwnerID: OwnerID})
+        // console.log(newRestaurant,"newRestaurant");
         return res.json(newRestaurant);
     }
     catch(error){
+        // console.error("Error:", error); 
         return res.status(500).json({error:"Please try again after some times"});
     }
 })
@@ -58,7 +81,7 @@ router.get("/",async(req:Request,res:Response):Promise<any>=>{
         if(AllRestaurants.length<1){
             return res.json({message:"No restaurant exist"});
         }
-        return res.json(AllRestaurants);
+        return res.json(AllRestaurants[0]);
     }
     catch(error){
         return res.json({error:"Please try again after some times"});

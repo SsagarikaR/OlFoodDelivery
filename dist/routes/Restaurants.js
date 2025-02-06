@@ -11,9 +11,9 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
     const OwnerID = req.body.UserID.identifire;
     const { City, PINCode, street, RestaurantName, RestaurantContactNo } = req.body;
     // console.log(req.body)
-    let addressID;
+    let AddressID;
     try {
-        const IsAddressExist = await database_1.sequelize.query(`SELECT * FROM Address WHERE City=:City AND PINCode=:PINCode AND street=:street`, {
+        const IsAddressExist = await database_1.sequelize.query(`SELECT * FROM Addresses WHERE City=:City AND PINCode=:PINCode AND street=:street`, {
             replacements: {
                 City: City,
                 PINCode: PINCode,
@@ -21,21 +21,39 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
             },
             type: sequelize_1.QueryTypes.SELECT
         });
-        console.log(IsAddressExist);
+        // console.log(OwnerID);
+        // console.log(IsAddressExist);
         if (IsAddressExist.length > 0) {
-            addressID = IsAddressExist[0].AddressID;
+            AddressID = IsAddressExist[0].AddressID;
         }
         else {
-            const newAddress = await Address_1.Address.create({ City: City, PINCode: PINCode, street: street });
+            const newAddress = await Address_1.Addresses.create({ City: City, PINCode: PINCode, street: street });
             console.log(newAddress, "newAddress");
-            addressID = newAddress.dataValues.AddressID;
+            AddressID = newAddress.dataValues.AddressID;
         }
-        console.log(addressID);
-        const newRestaurant = await Restaurant_1.Restaurant.create({ RestaurantName: RestaurantName, RestaurantContactNo: RestaurantContactNo, AddressID: addressID, OwnerID: OwnerID });
-        console.log(newRestaurant, "newRestaurant");
+        // console.log(AddressID);
+        const IsRestaurantExist = await database_1.sequelize.query(`SELECT * FROM Restaurant WHERE 
+           RestaurantName=:RestaurantName AND 
+           RestaurantContactNo=:RestaurantContactNo AND 
+           AddressID=:AddressID AND OwnerID=:OwnerID`, {
+            replacements: {
+                RestaurantName: RestaurantName,
+                RestaurantContactNo: RestaurantContactNo,
+                AddressID: AddressID,
+                OwnerID: OwnerID
+            },
+            type: sequelize_1.QueryTypes.SELECT
+        });
+        console.log(IsRestaurantExist, "IsRestaurantExist");
+        if (IsRestaurantExist.length > 0) {
+            return res.json({ message: "This restaurant is already registered" });
+        }
+        const newRestaurant = await Restaurant_1.Restaurant.create({ RestaurantName: RestaurantName, RestaurantContactNo: RestaurantContactNo, AddressID: AddressID, OwnerID: OwnerID });
+        // console.log(newRestaurant,"newRestaurant");
         return res.json(newRestaurant);
     }
     catch (error) {
+        // console.error("Error:", error); 
         return res.status(500).json({ error: "Please try again after some times" });
     }
 });
@@ -45,7 +63,7 @@ router.get("/", async (req, res) => {
         if (AllRestaurants.length < 1) {
             return res.json({ message: "No restaurant exist" });
         }
-        return res.json(AllRestaurants);
+        return res.json(AllRestaurants[0]);
     }
     catch (error) {
         return res.json({ error: "Please try again after some times" });

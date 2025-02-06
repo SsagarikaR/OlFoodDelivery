@@ -1,7 +1,7 @@
 import { DataTypes ,Model} from "sequelize";
 import {sequelize} from '../config/database'
 
-export const Address=sequelize.define('Address',{
+export const Addresses=sequelize.define('Addresses',{
     AddressID:{
         type:DataTypes.INTEGER,
         autoIncrement:true,
@@ -22,9 +22,9 @@ export const Address=sequelize.define('Address',{
     }
 },
 {
-    tableName:'Address',
+    tableName:'Addresses',
     timestamps:false
 })
 
-console.log(Address===sequelize.models.Address);
+console.log(Addresses===sequelize.models.Addresses);
 

@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 // import mysql from "mysql";
-import { Address } from './models/Address';
+import { Addresses } from './models/Address';
 import "./config/database"
 import customerAPIs from "./routes/Customer"
 import restaurantAPIs from "./routes/Restaurants";
@@ -26,7 +26,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
 (async()=>{
-    await Address.sync({alter:true});
+    await Addresses.sync({alter:true});
     await Users.sync({alter:true});
     await Customer_Address.sync({alter:true});
     await Restaurant.sync({alter:true});
@@ -39,21 +39,6 @@ app.use(bodyParser.urlencoded({extended:true}));
     await Payments.sync({alter:true});
     await Assignments.sync({alter:true});
     await Delivery_Driver.sync({alter:true});
-    // await Address.drop();
-    // await Users.drop();
-    // await Customer_Address.drop();
-    // await Restaurant.drop();
-    // await Category.drop();
-    // await MenuItems.drop();
-    // await Orders.drop();
-    // await OrderItems.drop();
-    // await RatingRestaurants.drop();
-    // await RatingDriver.drop();
-    // await Payments.drop();
-    // await Assignments.drop();
-    // await Delivery_Driver.drop();
-    // await sequelize.sync({alter:true});
-    // console.log("table synced")
   })();
 
 app.get('/', (req: Request, res: Response) => {
@@ -61,7 +46,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 
-app.use("/customers",customerAPIs);
+app.use("/users",customerAPIs);
 app.use("/restaurants",restaurantAPIs);
 
 app.listen(port, () => {

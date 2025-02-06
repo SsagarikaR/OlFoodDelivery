@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import {sequelize} from '../config/database'
-import { Address } from "./Address";
+import { Addresses} from "./Address";
 import { Users} from "./Users";
 
 export const Restaurant=sequelize.define('Restaurant',{
@@ -15,14 +15,14 @@ export const Restaurant=sequelize.define('Restaurant',{
         allowNull:false
     },
     RestaurantContactNo:{
-        type:DataTypes.STRING(15),
+        type:DataTypes.STRING,
         allowNull:false,
     },
     AddressID:{
         type:DataTypes.INTEGER,
         allowNull:false,
         references:{
-            model:Address,
+            model:Addresses,
             key:'AddressID'
         }
     },

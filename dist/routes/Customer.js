@@ -11,7 +11,7 @@ const Users_1 = require("../models/Users");
 const authentication_1 = require("../config/authentication");
 const authorization_1 = require("../config/authorization");
 const router = (0, express_1.Router)();
-router.post("/register", async (req, res) => {
+router.post("/signup", async (req, res) => {
     const { UserName, UserEmail, UserContactNo, password } = req.body;
     try {
         const IsExistName = await database_1.sequelize.query('SELECT * from Users where UserName=:UserName', {
@@ -35,6 +35,7 @@ router.post("/register", async (req, res) => {
         //Creating new User
         const newUser = await Users_1.Users.create({ UserName: UserName, UserEmail: UserEmail, UserContactNo: UserContactNo, password: hashedPassword });
         //Creating token and returning it to the User
+        console.log(newUser);
         const token = await (0, authentication_1.getToken)(newUser.dataValues.UserID);
         console.log("Customer added: ", newUser);
         const userToReturn = newUser.toJSON();
@@ -47,7 +48,7 @@ router.post("/register", async (req, res) => {
         return res.json({ error: "Please try again" });
     }
 });
-router.post("/login", async (req, res) => {
+router.post("/signin", async (req, res) => {
     const { UserName, UserEmail, UserContactNo, password } = req.body;
     try {
         // const hashedPassword = await bcrypt.hash(password, 10);

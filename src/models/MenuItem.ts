@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import {sequelize} from '../config/database'
 import { Category } from "./Category";
+import { Restaurant } from "./Restaurant";
 
 export const MenuItems=sequelize.define('MenuItems',{
     MenuItemID:{
@@ -24,7 +25,16 @@ export const MenuItems=sequelize.define('MenuItems',{
             model:Category,
             key:'CategoryID'
         }
-    }
+    },
+      RestaurantID:{
+            type:DataTypes.INTEGER,
+            allowNull:false,
+            references:{
+                model:Restaurant,
+                key:'RestaurantID'
+            },
+            onDelete:'CASCADE'
+        }
 },
 {
  timestamps:false  

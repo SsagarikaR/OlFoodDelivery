@@ -17,14 +17,14 @@ exports.Restaurant = database_1.sequelize.define('Restaurant', {
         allowNull: false
     },
     RestaurantContactNo: {
-        type: sequelize_1.DataTypes.STRING(15),
+        type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
     AddressID: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Address_1.Address,
+            model: Address_1.Addresses,
             key: 'AddressID'
         }
     },

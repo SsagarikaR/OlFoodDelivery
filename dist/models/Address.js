@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Address = void 0;
+exports.Addresses = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
-exports.Address = database_1.sequelize.define('Address', {
+exports.Addresses = database_1.sequelize.define('Addresses', {
     AddressID: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
@@ -23,7 +23,7 @@ exports.Address = database_1.sequelize.define('Address', {
         allowNull: false
     }
 }, {
-    tableName: 'Address',
+    tableName: 'Addresses',
     timestamps: false
 });
-console.log(exports.Address === database_1.sequelize.models.Address);
+console.log(exports.Addresses === database_1.sequelize.models.Addresses);

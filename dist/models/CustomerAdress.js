@@ -25,7 +25,7 @@ exports.Customer_Address = database_1.sequelize.define('Customer_Address', {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Address_1.Address,
+            model: Address_1.Addresses,
             key: 'AddressID'
         }
     }

@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import {sequelize} from '../config/database'
-import { Address } from "./Address";
+import { Addresses } from "./Address";
 import { Users } from "./Users";
 
 export const Customer_Address=sequelize.define('Customer_Address',{
@@ -23,7 +23,7 @@ export const Customer_Address=sequelize.define('Customer_Address',{
         type:DataTypes.INTEGER,
         allowNull:false,
         references:{
-            model:Address,
+            model:Addresses,
             key:'AddressID'
         }
     }

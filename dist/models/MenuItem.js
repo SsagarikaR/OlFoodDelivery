@@ -4,6 +4,7 @@ exports.MenuItems = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
 const Category_1 = require("./Category");
+const Restaurant_1 = require("./Restaurant");
 exports.MenuItems = database_1.sequelize.define('MenuItems', {
     MenuItemID: {
         type: sequelize_1.DataTypes.INTEGER,
@@ -26,6 +27,15 @@ exports.MenuItems = database_1.sequelize.define('MenuItems', {
             model: Category_1.Category,
             key: 'CategoryID'
         }
+    },
+    RestaurantID: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Restaurant_1.Restaurant,
+            key: 'RestaurantID'
+        },
+        onDelete: 'CASCADE'
     }
 }, {
     timestamps: false

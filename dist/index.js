@@ -27,7 +27,7 @@ const port = 3000;
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 (async () => {
-    await Address_1.Address.sync({ alter: true });
+    await Address_1.Addresses.sync({ alter: true });
     await Users_1.Users.sync({ alter: true });
     await CustomerAdress_1.Customer_Address.sync({ alter: true });
     await Restaurant_1.Restaurant.sync({ alter: true });
@@ -40,26 +40,11 @@ app.use(body_parser_1.default.urlencoded({ extended: true }));
     await Payments_1.Payments.sync({ alter: true });
     await Assignments_1.Assignments.sync({ alter: true });
     await Delivery_Driver_1.Delivery_Driver.sync({ alter: true });
-    // await Address.drop();
-    // await Users.drop();
-    // await Customer_Address.drop();
-    // await Restaurant.drop();
-    // await Category.drop();
-    // await MenuItems.drop();
-    // await Orders.drop();
-    // await OrderItems.drop();
-    // await RatingRestaurants.drop();
-    // await RatingDriver.drop();
-    // await Payments.drop();
-    // await Assignments.drop();
-    // await Delivery_Driver.drop();
-    // await sequelize.sync({alter:true});
-    // console.log("table synced")
 })();
 app.get('/', (req, res) => {
     res.send('Hello, TypeScript Express!');
 });
-app.use("/customers", Customer_1.default);
+app.use("/users", Customer_1.default);
 app.use("/restaurants", Restaurants_1.default);
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

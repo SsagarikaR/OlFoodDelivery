@@ -18,7 +18,7 @@ interface forNewUser{
 
 const router=Router();
 
-router.post("/register", async (req: Request, res: Response): Promise<any> => {
+router.post("/signup", async (req: Request, res: Response): Promise<any> => {
     const { UserName, UserEmail, UserContactNo, password } = req.body;
     try {
         const IsExistName=await sequelize.query('SELECT * from Users where UserName=:UserName',
@@ -64,7 +64,7 @@ router.post("/register", async (req: Request, res: Response): Promise<any> => {
 });
 
 
-router.post("/login",async(req:Request,res:Response):Promise<any>=>{
+router.post("/signin",async(req:Request,res:Response):Promise<any>=>{
     const {UserName,UserEmail, UserContactNo, password}=req.body;
     
     try{
@@ -103,7 +103,7 @@ router.post("/login",async(req:Request,res:Response):Promise<any>=>{
 })
 
 
-router.delete("/close",checkToken,async(req:Request,res:Response):Promise<any>=>{
+router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
     // console.log(req.body);
     const UserID=req.body.UserID.identifire
     console.log(UserID,"customerID")
