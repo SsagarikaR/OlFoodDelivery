@@ -5,6 +5,7 @@ const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
 const Restaurant_1 = require("./Restaurant");
 const Users_1 = require("./Users");
+const CustomerAdress_1 = require("./CustomerAdress");
 exports.Orders = database_1.sequelize.define('Orders', {
     OrderID: {
         type: sequelize_1.DataTypes.INTEGER,
@@ -27,6 +28,15 @@ exports.Orders = database_1.sequelize.define('Orders', {
         references: {
             model: Restaurant_1.Restaurant,
             key: 'RestaurantID'
+        },
+        onDelete: 'CASCADE'
+    },
+    CustomerAddressID: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: CustomerAdress_1.Customer_Address,
+            key: 'CustomerAddressID'
         },
         onDelete: 'CASCADE'
     },

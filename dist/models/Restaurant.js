@@ -39,6 +39,9 @@ exports.Restaurant = database_1.sequelize.define('Restaurant', {
     },
     Rating: {
         type: sequelize_1.DataTypes.INTEGER
+    },
+    Thumbnail: {
+        type: sequelize_1.DataTypes.STRING
     }
 }, {
     tableName: "Restaurant",

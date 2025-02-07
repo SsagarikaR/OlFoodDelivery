@@ -37,6 +37,9 @@ export const Restaurant=sequelize.define('Restaurant',{
     },
     Rating:{
         type:DataTypes.INTEGER
+    },
+    Thumbnail:{
+        type:DataTypes.STRING
     }
 },
 {

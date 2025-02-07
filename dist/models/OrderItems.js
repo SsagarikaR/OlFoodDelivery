@@ -4,6 +4,7 @@ exports.OrderItems = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
 const MenuItem_1 = require("./MenuItem");
+const Orders_1 = require("./Orders");
 exports.OrderItems = database_1.sequelize.define('OrderItems', {
     OrderItemsID: {
         type: sequelize_1.DataTypes.INTEGER,
@@ -17,6 +18,15 @@ exports.OrderItems = database_1.sequelize.define('OrderItems', {
         references: {
             model: MenuItem_1.MenuItems,
             key: 'MenuItemID'
+        },
+        onDelete: 'CASCADE'
+    },
+    OrderID: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Orders_1.Orders,
+            key: 'OrderID'
         },
         onDelete: 'CASCADE'
     },

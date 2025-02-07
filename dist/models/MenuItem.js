@@ -24,9 +24,10 @@ exports.MenuItems = database_1.sequelize.define('MenuItems', {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Category_1.Category,
+            model: Category_1.Categories,
             key: 'CategoryID'
-        }
+        },
+        onDelete: 'CASCADE'
     },
     RestaurantID: {
         type: sequelize_1.DataTypes.INTEGER,
@@ -36,6 +37,12 @@ exports.MenuItems = database_1.sequelize.define('MenuItems', {
             key: 'RestaurantID'
         },
         onDelete: 'CASCADE'
+    },
+    discount: {
+        type: sequelize_1.DataTypes.INTEGER
+    },
+    Thumbnail: {
+        type: sequelize_1.DataTypes.STRING
     }
 }, {
     timestamps: false

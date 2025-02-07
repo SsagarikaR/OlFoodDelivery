@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import {sequelize} from '../config/database'
 import { Restaurant } from "./Restaurant";
 
-export const Category=sequelize.define('Category',{
+export const Categories=sequelize.define('Categories',{
     CategoryID:{
         type:DataTypes.INTEGER,
         autoIncrement:true,
@@ -13,18 +13,21 @@ export const Category=sequelize.define('Category',{
         type:DataTypes.STRING,
         allowNull:false,
     },
-      RestaurantID:{
-            type:DataTypes.INTEGER,
-            allowNull:false,
-            references:{
-                model:Restaurant,
-                key:'RestaurantID'
-            },
-            onDelete:'CASCADE'
-        }
+    RestaurantID:{
+        type:DataTypes.INTEGER,
+        allowNull:false,
+        references:{
+            model:Restaurant,
+            key:'RestaurantID'
+        },
+        onDelete:'CASCADE'
+    },
+    Thumbnail:{
+        type:DataTypes.STRING
+    }
 },
 {
  timestamps:false  
 })
 
-console.log(Category===sequelize.models.Category);
+console.log(Categories===sequelize.models.Categories);

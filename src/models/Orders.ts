@@ -1,8 +1,9 @@
 import { DataTypes } from "sequelize";
 import {sequelize} from '../config/database'
-import { Category } from "./Category";
+import { Categories } from "./Category";
 import { Restaurant } from "./Restaurant";
 import { Users} from "./Users";
+import { Customer_Address } from "./CustomerAdress";
 
 export const Orders=sequelize.define('Orders',{
     OrderID:{
@@ -26,6 +27,15 @@ export const Orders=sequelize.define('Orders',{
         references:{
             model:Restaurant,
             key:'RestaurantID'
+        },
+        onDelete:'CASCADE'
+    },
+    CustomerAddressID:{
+        type:DataTypes.INTEGER,
+        allowNull:false,
+        references:{
+            model:Customer_Address,
+            key:'CustomerAddressID'
         },
         onDelete:'CASCADE'
     },

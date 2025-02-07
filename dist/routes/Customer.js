@@ -82,7 +82,7 @@ router.post("/signin", async (req, res) => {
         return res.status(500).json({ error: "Please try again" });
     }
 });
-router.delete("/close", authorization_1.checkToken, async (req, res) => {
+router.delete("/", authorization_1.checkToken, async (req, res) => {
     // console.log(req.body);
     const UserID = req.body.UserID.identifire;
     console.log(UserID, "customerID");
@@ -98,11 +98,11 @@ router.delete("/close", authorization_1.checkToken, async (req, res) => {
             replacements: { UserID: UserID },
             type: sequelize_1.QueryTypes.DELETE
         });
-        return res.json({ message: "Account deleted successfully" });
+        return res.status(204).json({ Message: "Account deleted successfully" });
         // console.log(deleteAccount);
     }
     catch (error) {
-        return res.json({ error: "Please try again after some times" });
+        return res.json({ Error: "Please try again after some times" });
     }
 });
 router.patch("/password/change", authorization_1.checkToken, async (req, res) => {
@@ -135,6 +135,19 @@ router.get("/", authorization_1.checkToken, async (req, res) => {
         console.log("customers data");
         const Users = await database_1.sequelize.query(`SELECT * from Users WHERE UserID=:UserID`, {
             replacements: { UserID: UserID },
+            type: sequelize_1.QueryTypes.SELECT
+        });
+        console.log(Users);
+        return res.json(Users);
+    }
+    catch (error) {
+        return res.json({ error: "Please try again after some times" });
+    }
+});
+router.get("/all", async (req, res) => {
+    try {
+        console.log("customers data");
+        const Users = await database_1.sequelize.query(`SELECT * from Users `, {
             type: sequelize_1.QueryTypes.SELECT
         });
         console.log(Users);

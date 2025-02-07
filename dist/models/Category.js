@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Category = void 0;
+exports.Categories = void 0;
 const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
 const Restaurant_1 = require("./Restaurant");
-exports.Category = database_1.sequelize.define('Category', {
+exports.Categories = database_1.sequelize.define('Categories', {
     CategoryID: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
@@ -23,8 +23,11 @@ exports.Category = database_1.sequelize.define('Category', {
             key: 'RestaurantID'
         },
         onDelete: 'CASCADE'
+    },
+    Thumbnail: {
+        type: sequelize_1.DataTypes.STRING
     }
 }, {
     timestamps: false
 });
-console.log(exports.Category === database_1.sequelize.models.Category);
+console.log(exports.Categories === database_1.sequelize.models.Categories);

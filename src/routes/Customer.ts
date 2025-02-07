@@ -1,11 +1,9 @@
 import { sequelize } from "../config/database";
 import {Router,Request,Response} from "express"
 import bcrypt from "bcrypt";
-import { promises } from "dns";
-import { JSON, QueryTypes } from "sequelize";
+import {  QueryTypes } from "sequelize";
 import { Users } from "../models/Users";
 import { getToken } from "../config/authentication";
-import { json } from "body-parser";
 import { checkToken } from "../config/authorization";
 interface forNewUser{
     UserID: number,
@@ -103,6 +101,7 @@ router.post("/signin",async(req:Request,res:Response):Promise<any>=>{
 })
 
 
+
 router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
     // console.log(req.body);
     const UserID=req.body.UserID.identifire
@@ -125,13 +124,15 @@ router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
                 type:QueryTypes.DELETE
             }
         )
-        return res.json({message:"Account deleted successfully"});
+        return res.status(204).json({Message:"Account deleted successfully"});
         // console.log(deleteAccount);
     }
     catch(error){
-        return res.json({error:"Please try again after some times"});
+        return res.json({Error:"Please try again after some times"});
     }
 })
+
+
 
 router.patch("/password/change",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire
@@ -171,6 +172,22 @@ router.get("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
         const Users=await sequelize.query(
         `SELECT * from Users WHERE UserID=:UserID`,{
             replacements:{UserID:UserID},
+            type:QueryTypes.SELECT
+        })
+        console.log(Users);
+        return res.json(Users);
+    }
+    catch(error){
+        return res.json({error:"Please try again after some times"});
+    }
+   
+});
+
+router.get("/all",async(req:Request,res:Response):Promise<any>=>{
+    try{
+        console.log("customers data");
+        const Users=await sequelize.query(
+        `SELECT * from Users `,{
             type:QueryTypes.SELECT
         })
         console.log(Users);
