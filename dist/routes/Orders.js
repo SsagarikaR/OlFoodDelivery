@@ -4,8 +4,6 @@ const authorization_1 = require("../config/authorization");
 const database_1 = require("../config/database");
 const sequelize_1 = require("sequelize");
 const express_1 = require("express");
-const Address_1 = require("../models/Address");
-const OrderItems_1 = require("../models/OrderItems");
 const router = (0, express_1.Router)();
 router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) => {
     const { MenuItems, CustomerAddress } = req.body;
@@ -13,6 +11,7 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
     const CustomerID = req.body.UserID.identifire;
     let AddressID;
     let CustomerAddressID;
+    console.log(req.body);
     try {
         const IsAddressExist = await database_1.sequelize.query(`SELECT * FROM Addresses WHERE City=:City AND PINCode=:PINCode AND street=:street`, {
             replacements: {
@@ -26,9 +25,12 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
             AddressID = IsAddressExist[0].AddressID;
         }
         else {
-            const newAddress = await Address_1.Addresses.create({ City: CustomerAddress.City, PINCode: CustomerAddress.PINCode, street: CustomerAddress.street });
-            console.log(newAddress, "newAddress");
-            AddressID = newAddress.dataValues.AddressID;
+            const result = await database_1.sequelize.query(`INSERT INTO Addresses (City, PINCode, street) VALUES (?, ?, ?)`, {
+                replacements: [CustomerAddress.City, CustomerAddress.PINCode, CustomerAddress.street],
+                type: sequelize_1.QueryTypes.INSERT
+            });
+            AddressID = result[0];
+            console.log("New Address Created with ID:", AddressID);
         }
         const IsCustomerAdressExist = await database_1.sequelize.query(`SELECT * FROM Customer_Address WHERE CustomerID=? AND AddressID=?`, {
             replacements: [CustomerID, AddressID],
@@ -38,27 +40,73 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
             CustomerAddressID = IsCustomerAdressExist[0].CustomerAddressID;
         }
         else {
-            const newCustomerAddress = await CustomerAddress.create({ CustomerID: CustomerID, AddressID: AddressID });
-            console.log(newCustomerAddress, "newAddress");
-            CustomerAddressID = newCustomerAddress.dataValues.AddressID;
+            const result = await database_1.sequelize.query(`INSERT INTO Customer_Address (CustomerID, AddressID) VALUES (?, ?)`, {
+                replacements: [CustomerID, AddressID],
+                type: sequelize_1.QueryTypes.INSERT
+            });
+            CustomerAddressID = result[0];
+            console.log("New Customer Address Created with ID:", CustomerAddressID);
         }
-        const [result, metadata] = await database_1.sequelize.query(`INSERT into Orders (CustomerID,RestaurantID)VALUES (?,?)`, {
-            replacements: [CustomerID, restaurantID],
+        const [result, metadata] = await database_1.sequelize.query(`INSERT into Orders (CustomerID,RestaurantID, CustomerAddressID)VALUES (?,?,?)`, {
+            replacements: [CustomerID, restaurantID, CustomerAddressID],
             type: sequelize_1.QueryTypes.INSERT
         });
         if (metadata > 0) {
-            const CreateOrderItem = await OrderItems_1.OrderItems.bulkCreate(MenuItems);
-            console.log(CreateOrderItem);
-            const createdOrder = await database_1.sequelize.query('SELECT * FROM Orders WHERE CustomerID= ?', {
+            const createdOrder = await database_1.sequelize.query('SELECT * FROM Orders WHERE CustomerID= ? ORDER BY OrderID DESC LIMIT 1', {
                 replacements: [CustomerID],
                 type: sequelize_1.QueryTypes.SELECT
             });
-            return res.status(500).json(createdOrder);
+            const OrderID = createdOrder[0].OrderID;
+            // Insert order items for the current order
+            await database_1.sequelize.query(`INSERT INTO OrderItems (MenuItemID, OrderID, Quantity) VALUES ${MenuItems.map((item) => {
+                return `(${item.MenuItemID}, ${OrderID}, ${item.Quantity})`;
+            }).join(",")}`, {
+                type: sequelize_1.QueryTypes.INSERT
+            });
+            // Fetch order items and calculate the total price for the current order
+            const orderItems = await database_1.sequelize.query(`SELECT oi.OrderItemsID, oi.Quantity, mi.ItemName, mi.ItemPrice,
+                        (mi.ItemPrice * oi.Quantity) AS ItemTotalPrice
+                 FROM OrderItems oi
+                 JOIN MenuItems mi ON oi.MenuItemID = mi.MenuItemID
+                 WHERE oi.OrderID = ?`, {
+                replacements: [OrderID],
+                type: sequelize_1.QueryTypes.SELECT
+            });
+            console.log(orderItems);
+            // console.log(CreateOrderItem);
+            const totalOrderPrice = orderItems.reduce((sum, item) => {
+                return sum + item.ItemTotalPrice; // Sum of item prices
+            }, 0);
+            // Add total order price to the response
+            return res.status(200).json({
+                OrderID,
+                RestaurantID: restaurantID,
+                OrderItems: orderItems,
+                TotalPrice: totalOrderPrice
+            });
         }
     }
     catch (error) {
         console.log(error, "error");
         return res.status(500).json({ Error: "Please try again after sometimes!!" });
+    }
+});
+router.delete("/:orderID", async (req, res) => {
+    const { orderID } = req.params; // Get OrderID from the URL parameters
+    try {
+        // 1. Delete related items in OrderItems (if needed)
+        await database_1.sequelize.query(`DELETE FROM OrderItems WHERE OrderID = ?`, {
+            replacements: [orderID],
+            type: sequelize_1.QueryTypes.DELETE
+        });
+        const deletedOrder = await database_1.sequelize.query(`DELETE FROM Orders WHERE OrderID = ?`, {
+            replacements: [orderID],
+        });
+        return res.status(200).json({ message: 'Order deleted successfully.' });
+    }
+    catch (error) {
+        console.log(error, "Error deleting order");
+        return res.status(500).json({ message: 'Failed to delete the order. Please try again later.' });
     }
 });
 exports.default = router;
