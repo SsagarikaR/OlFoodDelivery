@@ -179,13 +179,16 @@ router.post("/:restaurantID/new",checkToken ,async(req:Request,res:Response):Pro
 router.delete("/:orderID", async (req: Request, res: Response): Promise<any> => {
     const { orderID } = req.params;  
     try {
-        await sequelize.query(
-            `DELETE FROM OrderItems WHERE OrderID = ?`,
+        const order:forCreatedOrder[]=await sequelize.query(
+            `SELECT * FROM Orders WHERE OrderID = ?`,
             {
                 replacements: [orderID],
-                type: QueryTypes.DELETE
+                type: QueryTypes.SELECT
             }
-        );
+         )
+         if(order[0].status==="Success"){
+            return res.status(403).json({message:"You can't delete this order now"});
+         }
         const deletedOrder = await sequelize.query(
             `DELETE FROM Orders WHERE OrderID = ?`,
             {

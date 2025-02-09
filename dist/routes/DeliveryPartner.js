@@ -10,7 +10,7 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
     const { CustomerAddress } = req.body;
     let AddressID;
     try {
-        const IsPartnerExist = await database_1.sequelize.query('SELECT FROM Delivery_Driver WHERE UserID=?', {
+        const IsPartnerExist = await database_1.sequelize.query('SELECT * FROM Delivery_Driver WHERE UserID=?', {
             replacements: [UserID],
             type: sequelize_1.QueryTypes.SELECT
         });
@@ -29,17 +29,21 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
             AddressID = IsAddressExist[0].AddressID;
         }
         else {
-            const result = await database_1.sequelize.query(`INSERT INTO Addresses (City, PINCode, street) VALUES (?, ?, ?)`, {
+            const result = await database_1.sequelize.query(`INSERT INTO Addresses (City, PINCode, street) VALUES (?,?,?)`, {
                 replacements: [CustomerAddress.City, CustomerAddress.PINCode, CustomerAddress.street],
                 type: sequelize_1.QueryTypes.INSERT
             });
             AddressID = result[0];
             console.log("New Address Created with ID:", AddressID);
         }
-        const newPartner = await database_1.sequelize.query('INSERT INTO Delivery_Driver (  UserID, AddressID)  VALUES (?,?)');
+        const newPartner = await database_1.sequelize.query('INSERT INTO Delivery_Driver (UserID, AddressID)  VALUES (?,?)', {
+            replacements: [UserID, AddressID],
+            type: sequelize_1.QueryTypes.INSERT
+        });
         return res.status(202).json({ message: "you have successfully registered as a delivery partner" });
     }
     catch (error) {
+        console.log(error, "error");
         return res.status(500).json({ error: "Please try again after sometimes!!" });
     }
 });
@@ -94,3 +98,4 @@ router.delete("/", authorization_1.checkToken, async (req, res) => {
         return res.status(500).json({ error: "Please try again after sometimes!!" });
     }
 });
+exports.default = router;

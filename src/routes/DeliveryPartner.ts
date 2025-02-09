@@ -11,7 +11,7 @@ const router=Router();
     const {CustomerAddress}=req.body;
     let AddressID:number;
     try{
-        const IsPartnerExist=await sequelize.query('SELECT FROM Delivery_Driver WHERE UserID=?',
+        const IsPartnerExist=await sequelize.query('SELECT * FROM Delivery_Driver WHERE UserID=?',
             {
                 replacements:[UserID],
                 type:QueryTypes.SELECT
@@ -36,7 +36,7 @@ const router=Router();
         }
         else{
             const result = await sequelize.query(
-                `INSERT INTO Addresses (City, PINCode, street) VALUES (?, ?, ?)`,
+                `INSERT INTO Addresses (City, PINCode, street) VALUES (?,?,?)`,
                 {
                     replacements: [CustomerAddress.City, CustomerAddress.PINCode, CustomerAddress.street],
                     type: QueryTypes.INSERT
@@ -45,10 +45,16 @@ const router=Router();
             AddressID = result[0];
             console.log("New Address Created with ID:", AddressID);
         }
-        const newPartner=await sequelize.query('INSERT INTO Delivery_Driver (  UserID, AddressID)  VALUES (?,?)')
+        const newPartner=await sequelize.query('INSERT INTO Delivery_Driver (UserID, AddressID)  VALUES (?,?)',
+            {
+                replacements:[UserID,AddressID],
+                type:QueryTypes.INSERT
+            }
+        )
         return res.status(202).json({message:"you have successfully registered as a delivery partner"});
     }
     catch(error){
+        console.log(error,"error");
         return res.status(500).json({error:"Please try again after sometimes!!"});
     }
  })
@@ -117,3 +123,5 @@ const router=Router();
         return res.status(500).json({error:"Please try again after sometimes!!"});
     }
  })
+
+export default router;

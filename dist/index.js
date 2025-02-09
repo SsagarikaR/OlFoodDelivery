@@ -11,6 +11,8 @@ const Customer_1 = __importDefault(require("./routes/Customer"));
 const Restaurants_1 = __importDefault(require("./routes/Restaurants"));
 const Orders_1 = __importDefault(require("./routes/Orders"));
 const Rating_1 = __importDefault(require("./routes/Rating"));
+const DeliveryPartner_1 = __importDefault(require("./routes/DeliveryPartner"));
+const swaggerUi = require('swagger-ui-express');
 const app = (0, express_1.default)();
 const port = 3000;
 app.use(body_parser_1.default.json());
@@ -38,6 +40,7 @@ app.use("/users", Customer_1.default);
 app.use("/restaurants", Restaurants_1.default);
 app.use("/orders", Orders_1.default);
 app.use("/reviews", Rating_1.default);
+app.use("/delivery-partner", DeliveryPartner_1.default);
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

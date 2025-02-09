@@ -6,6 +6,8 @@ import customerAPIs from "./routes/Customer"
 import restaurantAPIs from "./routes/Restaurants";
 import orderAPIs from "./routes/Orders";
 import reviewAPIS from "./routes/Rating";
+import deliveryPartnerAPIs from "./routes/DeliveryPartner"
+const swaggerUi = require('swagger-ui-express');
 import { Users} from './models/Users';
 import { Customer_Address } from './models/CustomerAdress';
 import { Restaurant } from './models/Restaurant';
@@ -22,6 +24,7 @@ import { Addresses } from './models/Address';
 
 const app = express();
 const port =  3000;
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -52,6 +55,7 @@ app.use("/users",customerAPIs);
 app.use("/restaurants",restaurantAPIs);
 app.use("/orders",orderAPIs)
 app.use("/reviews",reviewAPIS);
+app.use("/delivery-partner",deliveryPartnerAPIs);
 
 app.listen(port, () => {
 console.log(`Server running at http://localhost:${port}`);

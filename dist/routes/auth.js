@@ -7,9 +7,62 @@ const database_1 = require("../config/database");
 const express_1 = require("express");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const sequelize_1 = require("sequelize");
-const Users_1 = require("../models/Users");
 const authentication_1 = require("../config/authentication");
 const router = (0, express_1.Router)();
+/**
+ * @swagger
+ * /auth/signup:
+ *   post:
+ *     summary: Register a new user
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               UserName:
+ *                 type: string
+ *                 description: The user's username
+ *               UserEmail:
+ *                 type: string
+ *                 format: email
+ *                 description: The user's email address
+ *               UserContactNo:
+ *                 type: string
+ *                 description: The user's contact number
+ *               password:
+ *                 type: string
+ *                 description: The user's password
+ *     responses:
+ *       200:
+ *         description: Returns the authentication token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string  # Assuming the token is a string
+ *       400:
+ *         description: Bad request (e.g., username or email already exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 router.post("/signup", async (req, res) => {
     const { UserName, UserEmail, UserContactNo, password } = req.body;
     try {
@@ -32,15 +85,19 @@ router.post("/signup", async (req, res) => {
         // Hashing the password
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
         //Creating new User
-        const newUser = await Users_1.Users.create({ UserName: UserName, UserEmail: UserEmail, UserContactNo: UserContactNo, password: hashedPassword });
+        const newUser = await database_1.sequelize.query('INSERT INTO Users (UserName, UserEmail, UserContactNo,password) VALUES (?,?,?,?)', {
+            replacements: [UserName, UserEmail, UserContactNo, hashedPassword],
+            type: sequelize_1.QueryTypes.INSERT
+        });
+        //  Users.create({UserName: UserName, UserEmail: UserEmail, UserContactNo:UserContactNo,password: hashedPassword})
         //Creating token and returning it to the User
         console.log(newUser);
-        const token = await (0, authentication_1.getToken)(newUser.dataValues.UserID);
-        console.log("Customer added: ", newUser);
-        const userToReturn = newUser.toJSON();
-        userToReturn.token = token;
-        delete userToReturn.password;
-        return res.json(userToReturn);
+        const token = await (0, authentication_1.getToken)(newUser[0]);
+        // console.log("Customer added: ", newUser);
+        // const userToReturn=newUser.toJSON();
+        // userToReturn.token=token;
+        // delete userToReturn.password;
+        return res.json(token);
     }
     catch (error) {
         console.error(error);

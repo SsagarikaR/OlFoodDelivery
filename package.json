@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc && node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\" "
+    "dev": "concurrently \"npx tsc --watch\"  \"npm run generateDoc\" \"nodemon -q dist/index.js\" ",
+    "generateDoc": "tsc && node dist/swagger.js"
   },
   "keywords": [],
   "author": "",
@@ -24,13 +25,17 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.12.0",
     "nodemon": "^3.1.9",
-    "sequelize": "^6.37.5"
+    "sequelize": "^6.37.5",
+    "swagger-jsdoc": "^6.2.8"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/node": "^22.13.1",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.7",
+    "swagger-autogen": "^2.23.7",
     "typescript": "^5.7.3"
   }
 }
