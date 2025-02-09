@@ -9,6 +9,23 @@ import { forNewUser } from "Interface/interface";
 
 const router=Router();
 
+
+/**
+ * @swagger
+ * /users:
+ *   delete:
+ *     summary: Delete a user account
+ *     tags: [User Routes]
+ *     security:
+ *       - authorization: []
+ *     responses:
+ *       204:
+ *         description: Account deleted successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
 router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
     // console.log(req.body);
     const UserID=req.body.UserID.identifire
@@ -41,6 +58,32 @@ router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
 
 
 
+/**
+ * @swagger
+ * /users/password/change:
+ *   patch:
+ *     summary: Change user password
+ *     tags: [User Routes]
+ *     security:
+ *       - authorization: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: The new password
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       500:
+ *         description: Internal server error
+ */
 router.patch("/password/change",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire
     const {password}=req.body;
@@ -70,6 +113,27 @@ router.patch("/password/change",checkToken,async(req:Request,res:Response):Promi
     }
 })
 
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get user details
+ *     tags: [User Routes]
+ *     security:
+ *       - authorization: []
+ *     responses:
+ *       200:
+ *         description: User details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object  # Or a more specific schema if you have one
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire
     console.log(req.body);
@@ -90,6 +154,26 @@ router.get("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
    
 });
 
+
+
+/**
+ * @swagger
+ * /users/all:
+ *   get:
+ *     summary: Get all user details (admin only)
+ *     tags: [User Routes]
+ *     responses:
+ *       200:
+ *         description: All user details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object # Or a more specific schema
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/all",async(req:Request,res:Response):Promise<any>=>{
     try{
         console.log("customers data");

@@ -5,6 +5,53 @@ import { checkToken } from "../config/authorization";
 
 const router=Router();
 
+/**
+ * @swagger
+ * /reviews/delivery-partners/{driverId}:
+ *   post:
+ *     summary: Add a rating for a delivery partner
+ *     tags: [Rating Routes]
+ *     security:
+ *       - authorization: []
+ *     parameters:
+ *       - in: path
+ *         name: driverId
+ *         schema:
+ *           type: integer # Or string, depending on your driverId type
+ *         required: true
+ *         description: The ID of the delivery driver
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 description: The rating given to the driver (e.g., 1-5)
+ *     responses:
+ *       202:
+ *         description: Rating added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire;
     const driverId=req.params;
@@ -36,6 +83,27 @@ router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Resp
     }
  })
 
+
+
+ /**
+ * @swagger
+ * /reviews/delivery-partners/{driverId}:
+ *   get:
+ *     summary: Get all ratings for a delivery partner
+ *     tags: [Rating Routes]
+ *     parameters:
+ *       - in: path
+ *         name: driverId
+ *         schema:
+ *           type: integer # Or string
+ *         required: true
+ *         description: The ID of the delivery driver
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of ratings
+ *       500:
+ *         description: Internal server error
+ */
  router.get("/delivery-partners/:driverId",async(req:Request,res:Response):Promise<any>=>{
     const driverId=req.params;
     try{
@@ -52,6 +120,41 @@ router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Resp
     }
  })
 
+
+
+/**
+ * @swagger
+ * /reviews/restaurant/{restaurantId}:
+ *   post:
+ *     summary: Add a rating for a restaurant
+ *     tags: [Rating Routes]
+ *     security:
+ *       - authorization: []
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         schema:
+ *           type: integer # Or string
+ *         required: true
+ *         description: The ID of the restaurant
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 description: The rating given to the restaurant
+ *     responses:
+ *       202:
+ *         description: Rating added successfully
+ *       500:
+ *         description: Internal server error
+ */
  router.post("/restaurant/:restaurantId",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire;
     const  RestaurantID=req.params;
@@ -84,6 +187,27 @@ router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Resp
     }
  })
 
+
+ 
+/**
+ * @swagger
+ * /reviews/restauarnts/{restaurantId}:
+ *   get:
+ *     summary: Get all ratings for a restaurant
+ *     tags: [Rating Routes]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         schema:
+ *           type: integer # Or string
+ *         required: true
+ *         description: The ID of the restaurant
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of ratings
+ *       500:
+ *         description: Internal server error
+ */
  router.get("/restauarnts/:restaurantId",async(req:Request,res:Response):Promise<any>=>{
     const restaurantId=req.params;
     try{

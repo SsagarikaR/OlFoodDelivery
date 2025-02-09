@@ -11,57 +11,44 @@ const authentication_1 = require("../config/authentication");
 const router = (0, express_1.Router)();
 /**
  * @swagger
+ * tags:
+ *   name: User Authentication
+ *   description: API for user signup and signin
+ */
+/**
+ * @swagger
  * /auth/signup:
  *   post:
  *     summary: Register a new user
- *     tags:
- *       - Authentication
+ *     tags: [User Authentication]
+ *     description: Creates a new user account if the username and email are not already taken.
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - UserName
+ *               - UserEmail
+ *               - UserContactNo
+ *               - password
  *             properties:
  *               UserName:
  *                 type: string
- *                 description: The user's username
  *               UserEmail:
  *                 type: string
- *                 format: email
- *                 description: The user's email address
  *               UserContactNo:
  *                 type: string
- *                 description: The user's contact number
  *               password:
  *                 type: string
- *                 description: The user's password
  *     responses:
  *       200:
- *         description: Returns the authentication token
- *         content:
- *           application/json:
- *             schema:
- *               type: string  # Assuming the token is a string
+ *         description: User registered successfully
  *       400:
- *         description: Bad request (e.g., username or email already exists)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Error message
+ *         description: Validation error
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message
  */
 router.post("/signup", async (req, res) => {
     const { UserName, UserEmail, UserContactNo, password } = req.body;
@@ -82,21 +69,13 @@ router.post("/signup", async (req, res) => {
         if (IsExistEmail.length > 0) {
             return res.json({ message: "This email is already registered" });
         }
-        // Hashing the password
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-        //Creating new User
         const newUser = await database_1.sequelize.query('INSERT INTO Users (UserName, UserEmail, UserContactNo,password) VALUES (?,?,?,?)', {
             replacements: [UserName, UserEmail, UserContactNo, hashedPassword],
             type: sequelize_1.QueryTypes.INSERT
         });
-        //  Users.create({UserName: UserName, UserEmail: UserEmail, UserContactNo:UserContactNo,password: hashedPassword})
-        //Creating token and returning it to the User
         console.log(newUser);
         const token = await (0, authentication_1.getToken)(newUser[0]);
-        // console.log("Customer added: ", newUser);
-        // const userToReturn=newUser.toJSON();
-        // userToReturn.token=token;
-        // delete userToReturn.password;
         return res.json(token);
     }
     catch (error) {
@@ -104,10 +83,44 @@ router.post("/signup", async (req, res) => {
         return res.json({ error: "Please try again" });
     }
 });
+/**
+ * @swagger
+ * /auth/signin:
+ *   post:
+ *     summary: Authenticate user
+ *     tags: [User Authentication]
+ *     description: Logs in a user if credentials match an existing account.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - UserName
+ *               - UserEmail
+ *               - UserContactNo
+ *               - password
+ *             properties:
+ *               UserName:
+ *                 type: string
+ *               UserEmail:
+ *                 type: string
+ *               UserContactNo:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User authenticated successfully
+ *       400:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/signin", async (req, res) => {
     const { UserName, UserEmail, UserContactNo, password } = req.body;
     try {
-        // const hashedPassword = await bcrypt.hash(password, 10);
         const user = await database_1.sequelize.query('SELECT * from Users where UserName=:UserName AND UserEmail=:UserEmail AND  UserContactNo=:UserContactNo', {
             replacements: {
                 UserName: UserName,

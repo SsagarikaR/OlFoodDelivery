@@ -6,7 +6,52 @@ const express_1 = require("express");
 const Restaurant_1 = require("../models/Restaurant");
 const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
-//REGISTER YOU RESTAURANT
+/**
+ * @swagger
+ * tags:
+ *   name: Restaurant Routes
+ *   description: API related to restaurant management
+ */
+/**
+ * @swagger
+ * /restaurants/register:
+ *   post:
+ *     summary: Register a new restaurant
+ *     tags: [Restaurant Routes]
+ *     description: Allows a user to register a new restaurant.
+ *     security:
+ *       - authorization: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - City
+ *               - PINCode
+ *               - street
+ *               - RestaurantName
+ *               - RestaurantContactNo
+ *             properties:
+ *               City:
+ *                 type: string
+ *               PINCode:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               RestaurantName:
+ *                 type: string
+ *               RestaurantContactNo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant registered successfully.
+ *       409:
+ *         description: Restaurant already exists.
+ *       500:
+ *         description: Internal server error.
+ */
 router.post("/register", authorization_1.checkToken, async (req, res) => {
     const OwnerID = req.body.UserID.identifire;
     const { City, PINCode, street, RestaurantName, RestaurantContactNo } = req.body;
@@ -60,7 +105,40 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
         return res.status(500).json({ Error: "Please try again after some times" });
     }
 });
-//ADD NEW MENU CATEGORY
+/**
+ * @swagger
+ * /restaurants/{id}/categories/new:
+ *   post:
+ *     summary: Add a new menu category to a restaurant
+ *     tags: [Category Routes]
+ *     security:
+ *       - authorization: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the restaurant
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - CategoryName
+ *             properties:
+ *               CategoryName:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Category created successfully.
+ *       409:
+ *         description: Category already exists.
+ *       500:
+ *         description: Internal server error.
+ */
 router.post("/:id/categories/new", authorization_1.checkToken, async (req, res) => {
     const { CategoryName } = req.body;
     const { id } = req.params;
@@ -93,7 +171,40 @@ router.post("/:id/categories/new", authorization_1.checkToken, async (req, res) 
         return res.status(500).json({ Message: "Please try again after sometimes" });
     }
 });
-//DELETE CATEGORY
+/**
+ * @swagger
+ * /restaurants/{id}/categories:
+ *   delete:
+ *     summary: Delete a menu category from a restaurant
+ *     tags: [Category Routes]
+ *     security:
+ *       - authorization: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the restaurant
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - CategoryID
+ *             properties:
+ *               CategoryID:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Category deleted successfully.
+ *       404:  # Or 400 Bad Request if the category ID is invalid
+ *         description: Category doesn't exist.
+ *       500:
+ *         description: Internal server error.
+ */
 router.delete("/:id/categories", authorization_1.checkToken, async (req, res) => {
     const { id } = req.params;
     const { CategoryID } = req.body;
@@ -116,7 +227,28 @@ router.delete("/:id/categories", authorization_1.checkToken, async (req, res) =>
         return res.status(500).json({ Error: "Please try again after sometimes" });
     }
 });
-//RETRIEVE MENU CATEGORY OF A RESTAURANT
+/**
+ * @swagger
+ * /restaurants/{id}/categories:
+ *   get:
+ *     summary: Retrieve menu categories of a restaurant
+ *     tags: [Restaurant Routes]
+ *     description: Fetch all menu categories for a given restaurant ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Restaurant ID
+ *     responses:
+ *       200:
+ *         description: List of menu categories.
+ *       404:
+ *         description: No menu category found.
+ *       500:
+ *         description: Internal server error.
+ */
 router.get("/:id/categories", async (req, res) => {
     const { id } = req.params;
     try {
@@ -135,12 +267,55 @@ router.get("/:id/categories", async (req, res) => {
         return res.status(500).json({ Error: "Please try again after sometimes!!" });
     }
 });
-//ADD MENU ITEMS
+/**
+ * @swagger
+ * /restaurants/{id}/menu-items/new:
+ *   post:
+ *     summary: Add a new menu item to a restaurant
+ *     tags: [Menu Item Routes]
+ *     security:
+ *       - authorization: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the restaurant
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ItemName
+ *               - ItemPrice
+ *               - CategoryID
+ *             properties:
+ *               ItemName:
+ *                 type: string
+ *               ItemPrice:
+ *                 type: number
+ *               CategoryID:
+ *                 type: integer
+ *               Thumbnail:
+ *                 type: string
+ *               discount:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Menu item created successfully.
+ *       409:
+ *         description: Menu item already exists.
+ *       500:
+ *         description: Internal server error.
+ */
 router.post("/:id/menu-items/new", async (req, res) => {
     const { id } = req.params;
     const { ItemName, ItemPrice, CategoryID, Thumbnail, discount } = req.body;
     try {
-        const IsItemExist = await database_1.sequelize.query(`SELECT * FROM MenuItems WHERE ItemName= ? AND CategoryID= ?`, {
+        const IsItemExist = await database_1.sequelize.query(`SELECT * FROM MenuItems WHERE ItemName=? AND CategoryID=?`, {
             replacements: [ItemName, CategoryID],
             type: sequelize_1.QueryTypes.SELECT
         });
@@ -153,7 +328,10 @@ router.post("/:id/menu-items/new", async (req, res) => {
             type: sequelize_1.QueryTypes.INSERT
         });
         if (metadata > 0) {
-            const CreatedMenu = await database_1.sequelize.query(`SELECT * FROM MenuItems WHERE ItemName=? AND CategoryID=?`);
+            const CreatedMenu = await database_1.sequelize.query(`SELECT * FROM MenuItems WHERE ItemName=? AND CategoryID=?`, {
+                replacements: [ItemName, CategoryID],
+                type: sequelize_1.QueryTypes.SELECT
+            });
             return res.status(201).json(CreatedMenu);
         }
     }
@@ -162,14 +340,47 @@ router.post("/:id/menu-items/new", async (req, res) => {
         return res.status(500).json({ Error: "Please try gain after sometimes." });
     }
 });
-//GET ALL MENU ITEMS
+/**
+ * @swagger
+ * /restaurants/menu-items:
+ *   get:
+ *     summary: Get all menu items
+ *     tags: [Menu Item Routes]
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of menu items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/MenuItem'  # Reference the MenuItem schema
+ *       409:
+ *         description: No menu items found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Error:
+ *                   type: string
+ */
 router.get("/menu-items", async (req, res) => {
     try {
         const menuItems = await database_1.sequelize.query(`SELECT * FROM MenuItems`, {
             type: sequelize_1.QueryTypes.SELECT
         });
         if (menuItems.length > 0) {
-            return res.status(200).json(menuItems[0]);
+            return res.status(200).json(menuItems);
         }
         else {
             return res.status(409).json({ Message: "No item found" });
@@ -180,7 +391,53 @@ router.get("/menu-items", async (req, res) => {
         return res.status(500).send({ Error: "Please try again after sometimes!!" });
     }
 });
-//GET MENU ITEMS BY PRICE AND NAME
+/**
+ * @swagger
+ * /restaurants/menu-items/{name}/{price}:
+ *   get:
+ *     summary: Get menu items by name and price
+ *     tags: [Menu Item Routes]
+ *     parameters:
+ *       - in: path
+ *         name: name
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The name of the menu item
+ *       - in: path
+ *         name: price
+ *         schema:
+ *           type: number  # Or integer if price is an integer
+ *         required: true
+ *         description: The price of the menu item
+ *     responses:
+ *       200: # Changed to 200 OK for successful retrieval
+ *         description: Successful retrieval of menu items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/MenuItem'
+ *       404:  # Changed to 404 Not Found if no items are found
+ *         description: No menu items found with the given name and price
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 Error:
+ *                   type: string
+ */
 router.get("/menu-items/:name/:price", async (req, res) => {
     const { name, price } = req.params;
     // const {ItemName,ItemPrice}=req.body;
@@ -198,7 +455,21 @@ router.get("/menu-items/:name/:price", async (req, res) => {
         return res.status(500).json({ Error: "Please try gain after sometimes." });
     }
 });
-//GET ALL THE RESTAURANTS
+/**
+ * @swagger
+ * /restaurants:
+ *   get:
+ *     summary: Retrieve all restaurants
+ *     tags: [Restaurant Routes]
+ *     description: Fetch a list of all registered restaurants.
+ *     responses:
+ *       200:
+ *         description: A list of restaurants.
+ *       404:
+ *         description: No restaurant found.
+ *       500:
+ *         description: Internal server error.
+ */
 router.get("/", async (req, res) => {
     try {
         const AllRestaurants = await database_1.sequelize.query(`SELECT * FROM Restaurant`);

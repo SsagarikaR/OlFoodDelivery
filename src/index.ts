@@ -7,7 +7,10 @@ import restaurantAPIs from "./routes/Restaurants";
 import orderAPIs from "./routes/Orders";
 import reviewAPIS from "./routes/Rating";
 import deliveryPartnerAPIs from "./routes/DeliveryPartner"
-const swaggerUi = require('swagger-ui-express');
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocs from './swaggerConfig';
+
 import { Users} from './models/Users';
 import { Customer_Address } from './models/CustomerAdress';
 import { Restaurant } from './models/Restaurant';
@@ -21,6 +24,8 @@ import { Payments } from './models/Payments';
 import { Assignments } from './models/Assignments';
 import { Delivery_Driver } from './models/Delivery_Driver';
 import { Addresses } from './models/Address';
+import { title } from 'process';
+import { version } from 'os';
 
 const app = express();
 const port =  3000;
@@ -28,6 +33,32 @@ const port =  3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
+
+swaggerDocs(app);
+// const swaggerOptions={
+//     definition:{
+//         openapi:"3.0.0",
+//         info:{
+//             title:"API for online food delivery app",
+//             version:"1.0.0",
+//             description:"API for online food delivery app"
+//         },
+//         servers:[
+//             {
+//                 url:"http://localhost:3000"
+//             }
+//         ]
+//     },
+//     apis:["./routes/*.js"],
+// };
+
+// const swaggerSpec=swaggerJSDoc(swaggerOptions);
+// app.use("/api-docs",swaggerUi.serve,(req:Request,res:Response)=>{
+//     console.log(swaggerSpec);
+//     swaggerUi.setup(swaggerSpec);
+
+// }
+// );
 
 (async()=>{
     // await Addresses.sync({alter:true});
@@ -55,7 +86,7 @@ app.use("/users",customerAPIs);
 app.use("/restaurants",restaurantAPIs);
 app.use("/orders",orderAPIs)
 app.use("/reviews",reviewAPIS);
-app.use("/delivery-partner",deliveryPartnerAPIs);
+app.use("/delivery-partners",deliveryPartnerAPIs);
 
 app.listen(port, () => {
 console.log(`Server running at http://localhost:${port}`);

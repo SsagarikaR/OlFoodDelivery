@@ -5,6 +5,37 @@ const express_1 = require("express");
 const sequelize_1 = require("sequelize");
 const database_1 = require("../config/database");
 const router = (0, express_1.Router)();
+/**
+ * @openapi
+ * /delivery-partners/register:
+ *   post:
+ *     summary: Register as a delivery partner
+ *     tags: [Delivery Partner Routes]
+ *     security:
+ *       - authorization: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - CustomerAddress
+ *             properties:
+ *               CustomerAddress:
+ *                 type: object
+ *                 properties:
+ *                   City: { type: string }
+ *                   PINCode: { type: string }
+ *                   street: { type: string }
+ *     responses:
+ *       202:
+ *         description: Successfully registered as a delivery partner
+ *       403:
+ *         description: Already registered as a delivery partner
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/register", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
     const { CustomerAddress } = req.body;
@@ -47,17 +78,47 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
         return res.status(500).json({ error: "Please try again after sometimes!!" });
     }
 });
+/**
+* @openapi
+* /delivery-partners:
+*   patch:
+*     summary: Update delivery partner address
+*     tags: [Delivery Partner Routes]
+*     security:
+*       - authorization: []
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             required:
+*               - CustomerAddress
+*             properties:
+*               CustomerAddress:
+*                 type: object
+*                 properties:
+*                   City: { type: string }
+*                   PINCode: { type: string }
+*                   street: { type: string }
+*     responses:
+*       200:
+*         description: Successfully updated address
+*       500:
+*         description: Internal server error
+*/
 router.patch("/", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
-    const CustomerAddress = req.body;
+    const { CustomerAddress } = req.body;
     let AddressID;
     try {
-        const IsAddressExist = await database_1.sequelize.query(`SELECT * FROM Addresses WHERE City=:City AND PINCode=:PINCode AND street=:street`, {
-            replacements: {
-                City: CustomerAddress.City,
-                PINCode: CustomerAddress.PINCode,
-                street: CustomerAddress.street
-            },
+        console.log(CustomerAddress);
+        const IsAddressExist = await database_1.sequelize.query(`SELECT * FROM Addresses WHERE City=? AND PINCode=? AND street=?`, {
+            replacements: [
+                CustomerAddress.City,
+                CustomerAddress.PINCode,
+                CustomerAddress.street
+            ],
             type: sequelize_1.QueryTypes.SELECT
         });
         if (IsAddressExist.length > 0) {
@@ -71,13 +132,32 @@ router.patch("/", authorization_1.checkToken, async (req, res) => {
             console.log(newAddress, "newAddress");
             AddressID = newAddress[0];
         }
-        const updatePartnerAddresID = await database_1.sequelize.query('UPDATE Delivery_Partner SET AddressID=? WHERE UserID=?', {
+        const updatePartnerAddresID = await database_1.sequelize.query('UPDATE Delivery_Driver SET AddressID=? WHERE UserID=?', {
             replacements: [AddressID, UserID]
         });
+        return res.status(200).json({ message: "You have successfully updated your address" });
     }
     catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: "Please try again after sometimes!!" });
     }
 });
+/**
+* @openapi
+* /delivery-partner:
+*   delete:
+*     summary: Delete delivery partner registration
+*     tags: [Delivery Partner Routes]
+*     security:
+*       - authorization: []
+*     responses:
+*       200:
+*         description: Successfully signed out as delivery partner
+*       404:
+*         description: Not registered as a delivery partner
+*       500:
+*         description: Internal server error
+*/
 router.delete("/", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
     try {
