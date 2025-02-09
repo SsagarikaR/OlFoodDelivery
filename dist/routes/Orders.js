@@ -63,6 +63,17 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
             }).join(",")}`, {
                 type: sequelize_1.QueryTypes.INSERT
             });
+            const driver = await database_1.sequelize.query(`SELECT DeliveryDriverID 
+                 FROM Delivery_Driver 
+                 LEFT JOIN Assignments ON Delivery_Driver.DeliveryDriverID = Assignments.DeliveryDriverID 
+                 GROUP BY Delivery_Driver.DeliveryDriverID 
+                 ORDER BY COUNT(Assignments.OrderID) ASC 
+                 LIMIT 1`, { type: sequelize_1.QueryTypes.SELECT });
+            const driverId = driver[0].DeliveryDriverID;
+            await database_1.sequelize.query(`INSERT INTO Assignments (OrderID, DeliveryDriverID) VALUES (?, ?)`, {
+                replacements: [OrderID, driverId],
+                type: sequelize_1.QueryTypes.INSERT
+            });
             // Fetch order items and calculate the total price for the current order
             const orderItems = await database_1.sequelize.query(`SELECT oi.OrderItemsID, oi.Quantity, mi.ItemName, mi.ItemPrice,
                         (mi.ItemPrice * oi.Quantity) AS ItemTotalPrice
@@ -73,17 +84,19 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
                 type: sequelize_1.QueryTypes.SELECT
             });
             console.log(orderItems);
-            // console.log(CreateOrderItem);
             const totalOrderPrice = orderItems.reduce((sum, item) => {
-                return sum + item.ItemTotalPrice; // Sum of item prices
+                return sum + item.ItemTotalPrice;
             }, 0);
-            // Add total order price to the response
             return res.status(200).json({
                 OrderID,
                 RestaurantID: restaurantID,
                 OrderItems: orderItems,
-                TotalPrice: totalOrderPrice
+                TotalPrice: totalOrderPrice,
+                DeliveryPartner: driverId
             });
+        }
+        else {
+            return res.status(409).json({ message: "failed to create a order" });
         }
     }
     catch (error) {
@@ -92,9 +105,8 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
     }
 });
 router.delete("/:orderID", async (req, res) => {
-    const { orderID } = req.params; // Get OrderID from the URL parameters
+    const { orderID } = req.params;
     try {
-        // 1. Delete related items in OrderItems (if needed)
         await database_1.sequelize.query(`DELETE FROM OrderItems WHERE OrderID = ?`, {
             replacements: [orderID],
             type: sequelize_1.QueryTypes.DELETE

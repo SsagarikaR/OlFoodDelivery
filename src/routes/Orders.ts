@@ -2,16 +2,7 @@ import { checkToken } from "../config/authorization";
 import { sequelize } from "../config/database";
 import { QueryTypes } from "sequelize";
 import { Request,Response,Router } from "express";
-import { Addresses } from "../models/Address";
-import { OrderItems } from "../models/OrderItems";
-import { Customer_Address } from "../models/CustomerAdress";
-
-interface forAddress{
-    AddressID:number,
-    City:string,
-    PINCode:string,
-    street:string
-}
+import { forAddress, forDeliveryAssignment } from "../Interface/interface";
 
 interface forCustomerAddress{
     CustomerAddressID:number,
@@ -125,6 +116,28 @@ router.post("/:restaurantID/new",checkToken ,async(req:Request,res:Response):Pro
                 }
             );
 
+            const driver:forDeliveryAssignment[] = await sequelize.query(
+                `SELECT DeliveryDriverID 
+                 FROM Delivery_Driver 
+                 LEFT JOIN Assignments ON Delivery_Driver.DeliveryDriverID = Assignments.DeliveryDriverID 
+                 GROUP BY Delivery_Driver.DeliveryDriverID 
+                 ORDER BY COUNT(Assignments.OrderID) ASC 
+                 LIMIT 1`,
+                { type: QueryTypes.SELECT }
+            );
+    
+            const driverId = driver[0].DeliveryDriverID;
+    
+            await sequelize.query(
+                `INSERT INTO Assignments (OrderID, DeliveryDriverID) VALUES (?, ?)`,
+                {
+                    replacements: [OrderID, driverId],
+                    type: QueryTypes.INSERT
+                }
+            );
+    
+    
+
             // Fetch order items and calculate the total price for the current order
             const orderItems:forOrderItems[] = await sequelize.query(
                 `SELECT oi.OrderItemsID, oi.Quantity, mi.ItemName, mi.ItemPrice,
@@ -139,18 +152,20 @@ router.post("/:restaurantID/new",checkToken ,async(req:Request,res:Response):Pro
             );
 
             console.log(orderItems);
-            // console.log(CreateOrderItem);
             const totalOrderPrice = orderItems.reduce((sum, item) => {
-                return sum + item.ItemTotalPrice; // Sum of item prices
+                return sum + item.ItemTotalPrice;
             }, 0);
 
-            // Add total order price to the response
             return res.status(200).json({
                 OrderID,
                 RestaurantID: restaurantID,
                 OrderItems: orderItems,
-                TotalPrice: totalOrderPrice
+                TotalPrice: totalOrderPrice,
+                DeliveryPartner:driverId
             });
+        }
+        else{
+            return res.status(409).json({message:"failed to create a order"});
         }
     }
     catch(error){
@@ -162,10 +177,8 @@ router.post("/:restaurantID/new",checkToken ,async(req:Request,res:Response):Pro
 
 
 router.delete("/:orderID", async (req: Request, res: Response): Promise<any> => {
-    const { orderID } = req.params;  // Get OrderID from the URL parameters
-
+    const { orderID } = req.params;  
     try {
-        // 1. Delete related items in OrderItems (if needed)
         await sequelize.query(
             `DELETE FROM OrderItems WHERE OrderID = ?`,
             {

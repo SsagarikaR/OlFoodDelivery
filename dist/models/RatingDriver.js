@@ -6,7 +6,7 @@ const database_1 = require("../config/database");
 const Users_1 = require("./Users");
 const Delivery_Driver_1 = require("./Delivery_Driver");
 exports.RatingDriver = database_1.sequelize.define('RatingDriver', {
-    RatingRestaurantID: {
+    RatingDeliveryDriverID: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,

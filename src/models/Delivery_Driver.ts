@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import {sequelize} from '../config/database'
+import { Users } from "./Users";
+import { Addresses } from "./Address";
 
 export const Delivery_Driver=sequelize.define('Delivery_Driver',{
     DeliveryDriverID:{
@@ -8,18 +10,23 @@ export const Delivery_Driver=sequelize.define('Delivery_Driver',{
         primaryKey:true,
         allowNull:false
     },
-    DeliveryDriverName:{
-        type:DataTypes.STRING,
+   UserID:{
+        type:DataTypes.INTEGER,
         allowNull:false,
+        references:{
+            model:Users,
+            key:'UserID'
+        },
+        onDelete:'CASCADE'
     },
-    DeliveryDriverContact:{
-        type:DataTypes.STRING,
-        allowNull:false,
-    },
-    DeliveryDriverEmail:{
-        type:DataTypes.STRING,
-        allowNull:false,
-    },
+     AddressID:{
+            type:DataTypes.INTEGER,
+            allowNull:false,
+            references:{
+                model:Addresses,
+                key:'AddressID'
+            }
+        },
     Rating:{
         type:DataTypes.INTEGER
     }

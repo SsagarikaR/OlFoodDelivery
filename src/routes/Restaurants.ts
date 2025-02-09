@@ -52,9 +52,14 @@ router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=
             AddressID=IsAddressExist[0].AddressID;
         }
         else{
-            const newAddress=await Addresses.create({City:City,PINCode:PINCode,street:street});
+            const newAddress=await  sequelize.query('INSERT INTO Addresses (City,PINCode,street) VALUES (?,?,?)',
+                {
+                    replacements:[City,PINCode,street],
+                    type:QueryTypes.INSERT
+                }
+            )
             console.log(newAddress,"newAddress");
-            AddressID=newAddress.dataValues.AddressID;
+            AddressID=newAddress[0];
         }
         // console.log(AddressID);
 

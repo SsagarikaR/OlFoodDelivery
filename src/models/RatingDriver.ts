@@ -4,7 +4,7 @@ import { Users } from "./Users";
 import { Delivery_Driver } from "./Delivery_Driver";
 
 export const RatingDriver=sequelize.define('RatingDriver',{
-    RatingRestaurantID:{
+    RatingDeliveryDriverID:{
         type:DataTypes.INTEGER,
         autoIncrement:true,
         primaryKey:true,

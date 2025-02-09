@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const authorization_1 = require("../config/authorization");
 const database_1 = require("../config/database");
 const express_1 = require("express");
-const Address_1 = require("../models/Address");
 const Restaurant_1 = require("../models/Restaurant");
 const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
@@ -28,9 +27,12 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
             AddressID = IsAddressExist[0].AddressID;
         }
         else {
-            const newAddress = await Address_1.Addresses.create({ City: City, PINCode: PINCode, street: street });
+            const newAddress = await database_1.sequelize.query('INSERT INTO Addresses (City,PINCode,street) VALUES (?,?,?)', {
+                replacements: [City, PINCode, street],
+                type: sequelize_1.QueryTypes.INSERT
+            });
             console.log(newAddress, "newAddress");
-            AddressID = newAddress.dataValues.AddressID;
+            AddressID = newAddress[0];
         }
         // console.log(AddressID);
         const IsRestaurantExist = await database_1.sequelize.query(`SELECT * FROM Restaurant WHERE 
