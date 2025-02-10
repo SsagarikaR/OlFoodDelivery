@@ -13,7 +13,7 @@ exports.Payments = database_1.sequelize.define('Payments', {
         allowNull: false
     },
     PaymentMethod: {
-        type: sequelize_1.DataTypes.INTEGER,
+        type: sequelize_1.DataTypes.STRING,
         allowNull: false,
         references: {
             model: Users_1.Users,

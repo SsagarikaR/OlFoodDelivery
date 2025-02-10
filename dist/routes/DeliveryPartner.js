@@ -12,7 +12,7 @@ const router = (0, express_1.Router)();
  *     summary: Register as a delivery partner
  *     tags: [Delivery Partner Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -35,6 +35,12 @@ const router = (0, express_1.Router)();
  *         description: Already registered as a delivery partner
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.post("/register", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
@@ -85,7 +91,7 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
 *     summary: Update delivery partner address
 *     tags: [Delivery Partner Routes]
 *     security:
-*       - authorization: []
+*       - BearerAuth: []
 *     requestBody:
 *       required: true
 *       content:
@@ -106,6 +112,12 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
 *         description: Successfully updated address
 *       500:
 *         description: Internal server error
+*     securityDefinitions:
+*       authorization:
+*         type: apiKey
+*         in: header
+*         name: Authorization
+*         description: "JWT Token required for authentication"
 */
 router.patch("/", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
@@ -149,7 +161,7 @@ router.patch("/", authorization_1.checkToken, async (req, res) => {
 *     summary: Delete delivery partner registration
 *     tags: [Delivery Partner Routes]
 *     security:
-*       - authorization: []
+*       - BearerAuth: []
 *     responses:
 *       200:
 *         description: Successfully signed out as delivery partner
@@ -157,6 +169,12 @@ router.patch("/", authorization_1.checkToken, async (req, res) => {
 *         description: Not registered as a delivery partner
 *       500:
 *         description: Internal server error
+*     securityDefinitions:
+*       authorization:
+*         type: apiKey
+*         in: header
+*         name: Authorization
+*         description: "JWT Token required for authentication"
 */
 router.delete("/", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
@@ -176,6 +194,44 @@ router.delete("/", authorization_1.checkToken, async (req, res) => {
     }
     catch (error) {
         return res.status(500).json({ error: "Please try again after sometimes!!" });
+    }
+});
+/**
+* @openapi
+* /delivery-partners:
+*   get:
+*     summary: Get all registered delivery partners
+*     tags: [Delivery Partner Routes]
+*     responses:
+*       200:
+*         description: Successfully retrieved all delivery partners
+*         content:
+*           application/json:
+*             schema:
+*               type: array
+*               items:
+*                 type: object
+*                 properties:
+*                   UserID: { type: string }
+*                   AddressID: { type: number }
+*       500:
+*         description: Internal server error
+*/
+router.get("/", async (req, res) => {
+    try {
+        // Fetch all delivery partners from the Delivery_Driver table
+        const deliveryPartners = await database_1.sequelize.query(`SELECT * FROM Delivery_Driver`, {
+            type: sequelize_1.QueryTypes.SELECT
+        });
+        // Check if any delivery partners exist
+        if (deliveryPartners.length === 0) {
+            return res.status(404).json({ message: "No delivery partners found" });
+        }
+        return res.status(200).json(deliveryPartners);
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: "Please try again after some time!" });
     }
 });
 exports.default = router;

@@ -6,9 +6,9 @@ const options: swaggerJsDoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Library Management API',
+      title: 'Online Food Delivery API',
       version: '1.0.0',
-      description: 'API documentation for the Library Management System',
+      description: 'API documentation for the Online Food Delivery system',
     },
     servers: [
       {
@@ -25,8 +25,9 @@ const options: swaggerJsDoc.Options = {
         },
       },
     },
+    // DO NOT set security globally here, remove it
   },
-  apis: ['./dist/routes/*.js'],
+  apis: ['./dist/routes/*.js'], // Ensure this path is correct based on your environment
 };
 
 const swaggerSpec = swaggerJsDoc(options);

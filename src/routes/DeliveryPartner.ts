@@ -13,7 +13,7 @@ const router=Router();
  *     summary: Register as a delivery partner
  *     tags: [Delivery Partner Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -36,6 +36,12 @@ const router=Router();
  *         description: Already registered as a delivery partner
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
  router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire;
@@ -98,7 +104,7 @@ const router=Router();
  *     summary: Update delivery partner address
  *     tags: [Delivery Partner Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -119,6 +125,12 @@ const router=Router();
  *         description: Successfully updated address
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
  router.patch("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire;
@@ -171,7 +183,7 @@ const router=Router();
  *     summary: Delete delivery partner registration
  *     tags: [Delivery Partner Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Successfully signed out as delivery partner
@@ -179,6 +191,12 @@ const router=Router();
  *         description: Not registered as a delivery partner
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
  router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire;
@@ -205,4 +223,47 @@ const router=Router();
     }
  })
 
+
+ /**
+ * @openapi
+ * /delivery-partners:
+ *   get:
+ *     summary: Get all registered delivery partners
+ *     tags: [Delivery Partner Routes]
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all delivery partners
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   UserID: { type: string }
+ *                   AddressID: { type: number }
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/",  async (req: Request, res: Response): Promise<any> => {
+    try {
+        // Fetch all delivery partners from the Delivery_Driver table
+        const deliveryPartners = await sequelize.query(
+            `SELECT * FROM Delivery_Driver`,
+            {
+                type: QueryTypes.SELECT
+            }
+        );
+        
+        // Check if any delivery partners exist
+        if (deliveryPartners.length === 0) {
+            return res.status(404).json({ message: "No delivery partners found" });
+        }
+        
+        return res.status(200).json(deliveryPartners);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: "Please try again after some time!" });
+    }
+});
 export default router;

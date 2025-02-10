@@ -1,7 +1,7 @@
 
 import { Sequelize } from 'sequelize';
 
-export const sequelize=new Sequelize('olFoodDelivery','root','sumi2125@',{
+export const sequelize=new Sequelize('olFoodDelivery','sagarika','Sagarika@%71',{
     host: 'localhost',
     dialect: 'mysql',
 })

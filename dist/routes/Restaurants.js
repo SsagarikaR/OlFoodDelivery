@@ -6,6 +6,24 @@ const express_1 = require("express");
 const Restaurant_1 = require("../models/Restaurant");
 const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
+const checkRestaurantOwner = async (req, res, next) => {
+    const UserID = req.body.UserID.identifire;
+    const { id } = req.params;
+    try {
+        const restaurant = await database_1.sequelize.query('SELECT * FROM Restaurant WHERE RestaurantID = ? AND OwnerID = ?', {
+            replacements: [id, UserID],
+            type: sequelize_1.QueryTypes.SELECT,
+        });
+        if (restaurant.length === 0) {
+            return res.status(403).json({ message: "You are not authorized to modify this restaurant's categories." });
+        }
+        next();
+    }
+    catch (error) {
+        console.log("Error ", error);
+        return res.status(500).json({ message: "Please try again after sometimes" });
+    }
+};
 /**
  * @swagger
  * tags:
@@ -20,7 +38,7 @@ const router = (0, express_1.Router)();
  *     tags: [Restaurant Routes]
  *     description: Allows a user to register a new restaurant.
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -51,6 +69,12 @@ const router = (0, express_1.Router)();
  *         description: Restaurant already exists.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.post("/register", authorization_1.checkToken, async (req, res) => {
     const OwnerID = req.body.UserID.identifire;
@@ -112,7 +136,7 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
  *     summary: Add a new menu category to a restaurant
  *     tags: [Category Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -138,8 +162,14 @@ router.post("/register", authorization_1.checkToken, async (req, res) => {
  *         description: Category already exists.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.post("/:id/categories/new", authorization_1.checkToken, async (req, res) => {
+router.post("/:id/categories/new", authorization_1.checkToken, checkRestaurantOwner, async (req, res) => {
     const { CategoryName } = req.body;
     const { id } = req.params;
     console.log(CategoryName, "categoryName", id, "id");
@@ -178,7 +208,7 @@ router.post("/:id/categories/new", authorization_1.checkToken, async (req, res) 
  *     summary: Delete a menu category from a restaurant
  *     tags: [Category Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -204,8 +234,14 @@ router.post("/:id/categories/new", authorization_1.checkToken, async (req, res) 
  *         description: Category doesn't exist.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.delete("/:id/categories", authorization_1.checkToken, async (req, res) => {
+router.delete("/:id/categories", authorization_1.checkToken, checkRestaurantOwner, async (req, res) => {
     const { id } = req.params;
     const { CategoryID } = req.body;
     try {
@@ -217,7 +253,7 @@ router.delete("/:id/categories", authorization_1.checkToken, async (req, res) =>
             return res.json({ message: "Category doesn't exist" });
         }
         const [result, metadata] = await database_1.sequelize.query('DELETE FROM Categories WHERE CategoryID=? ', {
-            replacements: [CategoryID]
+            replacements: [CategoryID],
         });
         console.log(result, "result", metadata, "metadata");
         return res.status(200).json({ message: "Category deleted successfully" });
@@ -274,7 +310,7 @@ router.get("/:id/categories", async (req, res) => {
  *     summary: Add a new menu item to a restaurant
  *     tags: [Menu Item Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -310,8 +346,14 @@ router.get("/:id/categories", async (req, res) => {
  *         description: Menu item already exists.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.post("/:id/menu-items/new", async (req, res) => {
+router.post("/:id/menu-items/new", authorization_1.checkToken, checkRestaurantOwner, async (req, res) => {
     const { id } = req.params;
     const { ItemName, ItemPrice, CategoryID, Thumbnail, discount } = req.body;
     try {
@@ -444,10 +486,14 @@ router.get("/menu-items/:name/:price", async (req, res) => {
     console.log(req.params);
     try {
         const items = await database_1.sequelize.query(`SELECT * FROM MenuItems WHERE ItemName=? AND ItemPrice=?`, {
-            replacements: [name, price]
+            replacements: [name, price],
+            type: sequelize_1.QueryTypes.SELECT
         });
-        if (items[0].length > 0) {
-            return res.status(409).json(items[0]);
+        if (items.length > 0) {
+            return res.status(200).json(items);
+        }
+        else {
+            return res.status(404).json({ message: "No menu items found with the given name and price" });
         }
     }
     catch (error) {

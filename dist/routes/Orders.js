@@ -5,6 +5,24 @@ const database_1 = require("../config/database");
 const sequelize_1 = require("sequelize");
 const express_1 = require("express");
 const router = (0, express_1.Router)();
+const IsOrderBelongToYou = async (req, res, next) => {
+    const UserID = req.body.UserID.identifire;
+    const { orderId } = req.params;
+    try {
+        const restaurant = await database_1.sequelize.query('SELECT * FROM Orders WHERE OrderID = ? AND CustomerID = ?', {
+            replacements: [orderId, UserID],
+            type: sequelize_1.QueryTypes.SELECT,
+        });
+        if (restaurant.length === 0) {
+            return res.status(403).json({ message: "You are not authorized to access the  details of this order." });
+        }
+        next();
+    }
+    catch (error) {
+        console.log("Error ", error);
+        return res.status(500).json({ message: "Please try again after sometimes" });
+    }
+};
 /**
  * @swagger
  * /orders/{restaurantID}/new:
@@ -12,7 +30,7 @@ const router = (0, express_1.Router)();
  *     summary: Create a new order
  *     tags: [Order Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []  # This ensures that the endpoint requires the bearerAuth security
  *     parameters:
  *       - in: path
  *         name: restaurantID
@@ -50,6 +68,12 @@ const router = (0, express_1.Router)();
  *         description: Failed to create order
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) => {
     const { MenuItems, CustomerAddress } = req.body;
@@ -109,7 +133,7 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
             }).join(",")}`, {
                 type: sequelize_1.QueryTypes.INSERT
             });
-            const driver = await database_1.sequelize.query(`SELECT  Delivery_Driver.DeliveryDriverID
+            const driver = await database_1.sequelize.query(` SELECT  Delivery_Driver.DeliveryDriverID
                 FROM Delivery_Driver 
                 LEFT JOIN Assignments ON Delivery_Driver.DeliveryDriverID = Assignments.DeliveryDriverID 
                 GROUP BY Delivery_Driver.DeliveryDriverID 
@@ -157,7 +181,7 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
  *     summary: Get all orders for a customer
  *     tags: [Order Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Successful retrieval of orders
@@ -165,6 +189,12 @@ router.post("/:restaurantID/new", authorization_1.checkToken, async (req, res) =
  *         description: No orders found
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.get("/", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
@@ -192,7 +222,7 @@ router.get("/", authorization_1.checkToken, async (req, res) => {
  *     summary: Get assignment details for an order
  *     tags: [Order Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -205,8 +235,14 @@ router.get("/", authorization_1.checkToken, async (req, res) => {
  *         description: Successful retrieval of assignment details
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.get("/assignments/:orderId", authorization_1.checkToken, async (req, res) => {
+router.get("/assignments/:orderId", authorization_1.checkToken, IsOrderBelongToYou, async (req, res) => {
     const orderId = req.params;
     try {
         const yourDetail = await database_1.sequelize.query(`SELECT * FROM Assignments WHERE OrderID=?`, {
@@ -226,6 +262,8 @@ router.get("/assignments/:orderId", authorization_1.checkToken, async (req, res)
  *   delete:
  *     summary: Delete an order
  *     tags: [Order Routes]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: orderID
@@ -240,8 +278,14 @@ router.get("/assignments/:orderId", authorization_1.checkToken, async (req, res)
  *         description: Order cannot be deleted (e.g., already processed)
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.delete("/:orderID", async (req, res) => {
+router.delete("/:orderID", authorization_1.checkToken, IsOrderBelongToYou, async (req, res) => {
     const { orderID } = req.params;
     try {
         const order = await database_1.sequelize.query(`SELECT * FROM Orders WHERE OrderID = ?`, {
@@ -268,7 +312,7 @@ router.delete("/:orderID", async (req, res) => {
  *     summary: Process payment for an order
  *     tags: [Order Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -276,6 +320,12 @@ router.delete("/:orderID", async (req, res) => {
  *           type: integer
  *         required: true
  *         description: The ID of the order
+ *       - in: header
+ *         name:  Authorization
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Optional - JWT token from local storage (alternative to Authorization header)
  *     requestBody:
  *       required: true
  *       content:
@@ -283,17 +333,10 @@ router.delete("/:orderID", async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - OrderItemsPrice
- *               - PlatformCharge
- *               - TotalPrice
  *               - PaymentMethod
- *               - Payment_status
  *             properties:
  *               OrderItemsPrice: { type: number }
- *               PlatformCharge: { type: number }
- *               TotalPrice: { type: number }
  *               PaymentMethod: { type: string }
- *               Payment_status: { type: string }
  *     responses:
  *       201:
  *         description: Payment processed successfully
@@ -301,25 +344,31 @@ router.delete("/:orderID", async (req, res) => {
  *         description: Missing required fields
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.post("/:orderId/payment", authorization_1.checkToken, async (req, res) => {
+router.post("/:orderId/payment", authorization_1.checkToken, IsOrderBelongToYou, async (req, res) => {
     const userId = req.body.UserID.identifire;
     const OrderID = req.params.orderId;
-    const { OrderItemsPrice, PlatformCharge, TotalPrice, PaymentMethod, Payment_status } = req.body;
-    // Basic input validation
-    if (!OrderID || !OrderItemsPrice || !PlatformCharge || !TotalPrice || !PaymentMethod || !Payment_status) {
+    const { OrderItemsPrice, PaymentMethod } = req.body;
+    const PlatformCharge = 10;
+    const TotalPrice = OrderItemsPrice + PlatformCharge;
+    if (!OrderID || !OrderItemsPrice || !PaymentMethod) {
         return res.status(400).json({ error: "Missing required fields" });
     }
     try {
         const result = await database_1.sequelize.query(`INSERT INTO Payments (OrderID,  OrderItemsPrice, PlatformCharge, TotalPrice, Payment_status, PaymentMethod) 
-             VALUES (:OrderID, , :OrderItemsPrice, :PlatformCharge, :TotalPrice, :Payment_status, :PaymentMethod)`, {
+             VALUES (:OrderID,  :OrderItemsPrice, :PlatformCharge, :TotalPrice, 'Success', :PaymentMethod)`, {
             replacements: {
                 OrderID,
                 OrderItemsPrice,
                 PlatformCharge,
                 TotalPrice,
                 PaymentMethod,
-                Payment_status
             },
             type: sequelize_1.QueryTypes.INSERT,
         });
@@ -331,17 +380,17 @@ router.post("/:orderId/payment", authorization_1.checkToken, async (req, res) =>
     }
     catch (error) {
         console.error("error", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: "Please try again after sometimes" });
     }
 });
 /**
  * @swagger
- * /orders/{orderId}/payment-detail:
+ * /orders/{orderId}/payment-details:
  *   get:
  *     summary: Get payment details for an order
  *     tags: [Order Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -356,8 +405,14 @@ router.post("/:orderId/payment", authorization_1.checkToken, async (req, res) =>
  *         description: No payments found
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.get("/:orderId/payment-details", authorization_1.checkToken, async (req, res) => {
+router.get("/:orderId/payment-details", authorization_1.checkToken, IsOrderBelongToYou, async (req, res) => {
     const orderId = parseInt(req.params.orderId, 10);
     const userId = req.body.UserID.identifire;
     if (isNaN(orderId)) {
@@ -369,13 +424,13 @@ router.get("/:orderId/payment-details", authorization_1.checkToken, async (req, 
             type: sequelize_1.QueryTypes.SELECT,
         });
         if (payments.length === 0) {
-            return res.status(404).json({ message: "No payments found for this order and user" });
+            return res.status(404).json({ message: "No payments found for this order " });
         }
         return res.status(200).json(payments);
     }
     catch (error) {
         console.error("error", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: "Please try again after sometimes." });
     }
 });
 exports.default = router;

@@ -13,39 +13,46 @@ const router = (0, express_1.Router)();
  * @swagger
  * /users:
  *   delete:
- *     summary: Delete a user account
+ *     summary: "Delete a user account"
  *     tags: [User Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []  # Authorization required to delete user
  *     responses:
  *       204:
- *         description: Account deleted successfully
+ *         description: "Account deleted successfully"
  *       404:
- *         description: User not found
+ *         description: "User not found"
  *       500:
- *         description: Internal server error
+ *         description: "Internal server error"
+ * securityDefinitions:
+ *   authorization:
+ *     type: apiKey
+ *     in: header
+ *     name: Authorization
+ *     description: "JWT Token required for authentication"
  */
 router.delete("/", authorization_1.checkToken, async (req, res) => {
-    // console.log(req.body);
-    const UserID = req.body.UserID.identifire;
+    const UserID = req.body.UserID.identifire; // Assuming 'UserID' is decoded from the JWT token
     console.log(UserID, "customerID");
     try {
+        // Check if the user exists in the database
         const deleteUser = await database_1.sequelize.query(`SELECT * FROM Users WHERE UserID=:UserID`, {
             replacements: { UserID: UserID },
             type: sequelize_1.QueryTypes.SELECT
         });
+        // If user doesn't exist, return an error message
         if (deleteUser.length === 0) {
-            return res.json({ message: "User doesn't exist" });
+            return res.status(404).json({ message: "User doesn't exist" });
         }
-        const deleteAccount = await database_1.sequelize.query(`DELETE FROM Users where UserID=:UserID`, {
+        // Delete the user account from the database
+        await database_1.sequelize.query(`DELETE FROM Users where UserID=:UserID`, {
             replacements: { UserID: UserID },
             type: sequelize_1.QueryTypes.DELETE
         });
-        return res.status(204).json({ Message: "Account deleted successfully" });
-        // console.log(deleteAccount);
+        return res.status(204).json({ message: "Account deleted successfully" });
     }
     catch (error) {
-        return res.json({ Error: "Please try again after some times" });
+        return res.status(500).json({ error: "Please try again after some time" });
     }
 });
 /**
@@ -55,7 +62,7 @@ router.delete("/", authorization_1.checkToken, async (req, res) => {
  *     summary: Change user password
  *     tags: [User Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -73,6 +80,12 @@ router.delete("/", authorization_1.checkToken, async (req, res) => {
  *         description: Password updated successfully
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.patch("/password/change", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;
@@ -103,7 +116,7 @@ router.patch("/password/change", authorization_1.checkToken, async (req, res) =>
  *     summary: Get user details
  *     tags: [User Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: User details retrieved successfully
@@ -115,6 +128,12 @@ router.patch("/password/change", authorization_1.checkToken, async (req, res) =>
  *                 type: object  # Or a more specific schema if you have one
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.get("/", authorization_1.checkToken, async (req, res) => {
     const UserID = req.body.UserID.identifire;

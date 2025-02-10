@@ -1,6 +1,6 @@
 import { checkToken } from "../config/authorization";
 import { sequelize } from "../config/database";
-import { Router,Request,Response } from "express";
+import { Router,Request,Response ,NextFunction} from "express";
 import {Addresses} from "../models/Address";
 import { Restaurant } from "../models/Restaurant";
 import { QueryTypes } from "sequelize";
@@ -9,6 +9,32 @@ import { MenuItems } from "models/MenuItem";
 import { forResult,forAddress } from "Interface/interface";
 
 const router=Router();
+
+
+const checkRestaurantOwner = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    const UserID = req.body.UserID.identifire; 
+    const { id } = req.params; 
+  
+    try {
+        const restaurant = await sequelize.query(
+            'SELECT * FROM Restaurant WHERE RestaurantID = ? AND OwnerID = ?',
+            {
+                replacements: [id, UserID],
+                type: QueryTypes.SELECT,
+            }
+        );
+  
+        if (restaurant.length === 0) {
+            return res.status(403).json({ message: "You are not authorized to modify this restaurant's categories." });
+        }
+  
+        next();
+    } catch (error) {
+        console.log("Error ", error);
+        return res.status(500).json({ message: "Please try again after sometimes" });
+    }
+  };
+
 
 /**
  * @swagger
@@ -25,7 +51,7 @@ const router=Router();
  *     tags: [Restaurant Routes]
  *     description: Allows a user to register a new restaurant.
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -56,6 +82,12 @@ const router=Router();
  *         description: Restaurant already exists.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const OwnerID=req.body.UserID.identifire;
@@ -131,7 +163,7 @@ router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=
  *     summary: Add a new menu category to a restaurant
  *     tags: [Category Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -157,8 +189,14 @@ router.post("/register",checkToken,async(req:Request,res:Response):Promise<any>=
  *         description: Category already exists.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.post("/:id/categories/new",checkToken,async(req:Request,res:Response):Promise<any>=>{
+router.post("/:id/categories/new",checkToken,checkRestaurantOwner,async(req:Request,res:Response):Promise<any>=>{
     const {CategoryName}=req.body
     const {id}=req.params
     console.log(CategoryName,"categoryName",id,"id");
@@ -208,7 +246,7 @@ router.post("/:id/categories/new",checkToken,async(req:Request,res:Response):Pro
  *     summary: Delete a menu category from a restaurant
  *     tags: [Category Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -234,8 +272,14 @@ router.post("/:id/categories/new",checkToken,async(req:Request,res:Response):Pro
  *         description: Category doesn't exist.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.delete("/:id/categories",checkToken,async(req:Request,res:Response):Promise<any>=>{
+router.delete("/:id/categories",checkToken,checkRestaurantOwner,async(req:Request,res:Response):Promise<any>=>{
     const {id}=req.params;
     const {CategoryID}=req.body;
     try{
@@ -252,7 +296,7 @@ router.delete("/:id/categories",checkToken,async(req:Request,res:Response):Promi
         
         const [result,metadata]=await sequelize.query('DELETE FROM Categories WHERE CategoryID=? ',
             {
-                replacements:[CategoryID]
+                replacements:[CategoryID],
             }
         )
         console.log(result,"result",metadata,"metadata");
@@ -318,7 +362,7 @@ router.get("/:id/categories",async(req:Request,res:Response):Promise<any>=>{
  *     summary: Add a new menu item to a restaurant
  *     tags: [Menu Item Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -354,8 +398,14 @@ router.get("/:id/categories",async(req:Request,res:Response):Promise<any>=>{
  *         description: Menu item already exists.
  *       500:
  *         description: Internal server error.
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
-router.post("/:id/menu-items/new",async(req:Request,res:Response):Promise<any>=>{
+router.post("/:id/menu-items/new",checkToken,checkRestaurantOwner,async(req:Request,res:Response):Promise<any>=>{
     const {id}=req.params;
     const {ItemName,ItemPrice,CategoryID,Thumbnail,discount}=req.body;
     try{
@@ -500,11 +550,15 @@ router.get("/menu-items/:name/:price",async(req:Request,res:Response):Promise<an
     try{
         const items=await sequelize.query(`SELECT * FROM MenuItems WHERE ItemName=? AND ItemPrice=?`,
             {
-                replacements:[name,price]
+                replacements:[name,price],
+                type:QueryTypes.SELECT
             }
         )
-        if(items[0].length>0){
-            return res.status(409).json(items[0]);
+        if(items.length>0){
+            return res.status(200).json(items);
+        }
+        else{
+            return res.status(404).json({message:"No menu items found with the given name and price"})
         }
     }
     catch(error){
@@ -545,4 +599,6 @@ router.get("/",async(req:Request,res:Response):Promise<any>=>{
         return res.json({Error:"Please try again after some times!!"});
     }
 })
+
+
 export default router;

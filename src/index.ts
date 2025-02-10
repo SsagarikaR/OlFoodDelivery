@@ -7,8 +7,6 @@ import restaurantAPIs from "./routes/Restaurants";
 import orderAPIs from "./routes/Orders";
 import reviewAPIS from "./routes/Rating";
 import deliveryPartnerAPIs from "./routes/DeliveryPartner"
-import swaggerJSDoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
 import swaggerDocs from './swaggerConfig';
 
 import { Users} from './models/Users';

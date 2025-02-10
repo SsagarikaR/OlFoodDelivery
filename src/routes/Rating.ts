@@ -4,20 +4,25 @@ import { sequelize } from "../config/database";
 import { checkToken } from "../config/authorization";
 
 const router=Router();
-
 /**
  * @swagger
  * /reviews/delivery-partners/{driverId}:
  *   post:
  *     summary: Add a rating for a delivery partner
  *     tags: [Rating Routes]
+ *     components:
+ *       securitySchemes:
+ *         bearerAuth:
+ *           type: http
+ *           scheme: bearer
+ *           bearerFormat: JWT  # Optionally specify the format if you're using JWT tokens
  *     security:
- *       - authorization: []
+ *       - bearerAuth: []  # This ensures that the endpoint requires the bearerAuth security
  *     parameters:
  *       - in: path
  *         name: driverId
  *         schema:
- *           type: integer # Or string, depending on your driverId type
+ *           type: integer  # Or string, depending on your driverId type
  *         required: true
  *         description: The ID of the delivery driver
  *     requestBody:
@@ -35,28 +40,25 @@ const router=Router();
  *     responses:
  *       202:
  *         description: Rating added successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
+ *       404:
+ *         description: Delivery partner doesn't exist
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
  */
 router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire;
-    const driverId=req.params;
+    const {driverId}=req.params;
     const {rating}=req.body;
     try{
+        const IsdriverExist=await sequelize.query(`SELECT * FROM Delivery_Driver WHERE DeliveryDriverID=?`,
+            {
+                replacements:[driverId],
+                type:QueryTypes.SELECT
+            }
+        )
+        if(IsdriverExist.length===0){
+            return res.status(404).json({message:"This delivery partner doesn't exist"})
+        }
         const addRating=await sequelize.query('INSERT INTO RatingDriver (CustomerID, DeliveryDriverID,Rating) VALUES (?,?,?)',
             {
                 replacements:[UserID,driverId,rating],
@@ -101,21 +103,39 @@ router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Resp
  *     responses:
  *       200:
  *         description: Successful retrieval of ratings
+ *       404:
+ *         description: Driver  not found or no rating for driver
  *       500:
  *         description: Internal server error
  */
  router.get("/delivery-partners/:driverId",async(req:Request,res:Response):Promise<any>=>{
-    const driverId=req.params;
+    const {driverId}=req.params;
     try{
+        const IsdriverExist=await sequelize.query(`SELECT * FROM Delivery_Driver WHERE DeliveryDriverID=?`,
+            {
+                replacements:[driverId],
+                type:QueryTypes.SELECT
+            }
+        )
+        if(IsdriverExist.length===0){
+            return res.status(404).json({message:"This delivery partner doesn't exist"})
+        }
         const getallRating=await sequelize.query('SELECT * FROM RatingDriver WHERE DeliveryDriverID=?',
             {
                 replacements:[driverId],
                 type:QueryTypes.SELECT
             }
         )
-        return res.status(200).json(getallRating);
+        if(getallRating.length>0){
+            return res.status(200).json(getallRating);
+        }
+        else{
+            return res.status(404).json({message:"This delivery partner has no ratings yet."})
+        }
+       
     }
     catch(error){
+        console.log(error)
         return res.status(500).json({error:"Please try again after sometimes"});
     }
  })
@@ -157,9 +177,19 @@ router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Resp
  */
  router.post("/restaurant/:restaurantId",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire;
-    const  RestaurantID=req.params;
+    const  RestaurantID=req.params.restaurantId;
     const {rating}=req.body;
+    console.log(UserID,RestaurantID,rating)
     try{
+        const IsRatingExist=await sequelize.query('SELECT * FROM RatingRestaurants WHERE RestaurantID=? AND CustomerID=?',
+            {
+                replacements:[RestaurantID,UserID],
+                type:QueryTypes.SELECT
+            }
+        )
+        if(IsRatingExist.length===0){
+            return res.status(403).json({message:`You have already added review for this restaurant`})
+        }
         const addRating=await sequelize.query('INSERT INTO RatingRestaurants (CustomerID,  RestaurantID,Rating) VALUES (?,?,?)',
             {
                 replacements:[UserID,RestaurantID,rating],
@@ -205,21 +235,38 @@ router.post("/delivery-partners/:driverId",checkToken,async(req:Request,res:Resp
  *     responses:
  *       200:
  *         description: Successful retrieval of ratings
+ *       404:
+ *         description: This restaurant  doesn't exist
  *       500:
  *         description: Internal server error
  */
  router.get("/restauarnts/:restaurantId",async(req:Request,res:Response):Promise<any>=>{
-    const restaurantId=req.params;
+    const {restaurantId}=req.params;
     try{
+        const IsRestaurantExist=await sequelize.query(`SELECT * FROM Restaurant WHERE RestaurantID=?`,
+            {
+                replacements:[restaurantId],
+                type:QueryTypes.SELECT
+            }
+        )
+        if(IsRestaurantExist.length===0){
+            return res.status(404).json({message:"This restaurant  doesn't exist"})
+        }
         const getallRating=await sequelize.query('SELECT * FROM RatingRestaurants WHERE RestaurantID=?',
             {
                 replacements:[restaurantId],
                 type:QueryTypes.SELECT
             }
         )
-        return res.status(200).json(getallRating);
+        if(getallRating.length>0){
+            return res.status(200).json(getallRating);
+        }
+        else{
+            return res.status(404).json({message:"This restaurant has no ratings yet."})
+        }
     }
     catch(error){
+        console.log(error)
         return res.status(500).json({error:"Please try again after sometimes"});
     }
  })

@@ -11,7 +11,7 @@ export const Payments=sequelize.define('Payments',{
         allowNull:false
     },
     PaymentMethod:{
-        type:DataTypes.INTEGER,
+        type:DataTypes.STRING,
         allowNull:false,
         references:{
             model:Users,

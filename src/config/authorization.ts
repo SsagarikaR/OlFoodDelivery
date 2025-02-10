@@ -16,6 +16,7 @@ export const checkToken=(req:Request,res:Response,next:NextFunction)=>{
         req.body.UserID=decoded;
         next();
       } catch (error) {
+        console.log(error)
           res.status(400).json({message:"Token Not Found"});
       }
 }

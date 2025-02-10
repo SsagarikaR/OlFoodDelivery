@@ -8,53 +8,63 @@ import { checkToken } from "../config/authorization";
 import { forNewUser } from "Interface/interface";
 
 const router=Router();
-
-
 /**
  * @swagger
  * /users:
  *   delete:
- *     summary: Delete a user account
+ *     summary: "Delete a user account"
  *     tags: [User Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []  # Authorization required to delete user
  *     responses:
  *       204:
- *         description: Account deleted successfully
+ *         description: "Account deleted successfully"
  *       404:
- *         description: User not found
+ *         description: "User not found"
  *       500:
- *         description: Internal server error
+ *         description: "Internal server error"
+ * securityDefinitions:
+ *   authorization:
+ *     type: apiKey
+ *     in: header
+ *     name: Authorization
+ *     description: "JWT Token required for authentication"
  */
-router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
-    // console.log(req.body);
-    const UserID=req.body.UserID.identifire
-    console.log(UserID,"customerID")
-    try{
-        const deleteUser=await sequelize.query(
+
+router.delete("/", checkToken, async (req: Request, res: Response): Promise<any> => {
+    const UserID = req.body.UserID.identifire;  // Assuming 'UserID' is decoded from the JWT token
+    console.log(UserID, "customerID");
+
+    try {
+        // Check if the user exists in the database
+        const deleteUser = await sequelize.query(
             `SELECT * FROM Users WHERE UserID=:UserID`,
             {
-                replacements:{UserID:UserID},
-                type:QueryTypes.SELECT
+                replacements: { UserID: UserID },
+                type: QueryTypes.SELECT
             }
-        )
-        if(deleteUser.length===0){
-            return res.json({message:"User doesn't exist"});
+        );
+
+        // If user doesn't exist, return an error message
+        if (deleteUser.length === 0) {
+            return res.status(404).json({ message: "User doesn't exist" });
         }
-        const deleteAccount=await sequelize.query(
+
+        // Delete the user account from the database
+        await sequelize.query(
             `DELETE FROM Users where UserID=:UserID`,
             {
-                replacements:{UserID:UserID},
-                type:QueryTypes.DELETE
+                replacements: { UserID: UserID },
+                type: QueryTypes.DELETE
             }
-        )
-        return res.status(204).json({Message:"Account deleted successfully"});
-        // console.log(deleteAccount);
+        );
+
+        return res.status(204).json({ message: "Account deleted successfully" });
+    } catch (error) {
+        return res.status(500).json({ error: "Please try again after some time" });
     }
-    catch(error){
-        return res.json({Error:"Please try again after some times"});
-    }
-})
+});
+
 
 
 
@@ -65,7 +75,7 @@ router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
  *     summary: Change user password
  *     tags: [User Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -83,6 +93,12 @@ router.delete("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
  *         description: Password updated successfully
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.patch("/password/change",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire
@@ -121,7 +137,7 @@ router.patch("/password/change",checkToken,async(req:Request,res:Response):Promi
  *     summary: Get user details
  *     tags: [User Routes]
  *     security:
- *       - authorization: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: User details retrieved successfully
@@ -133,6 +149,12 @@ router.patch("/password/change",checkToken,async(req:Request,res:Response):Promi
  *                 type: object  # Or a more specific schema if you have one
  *       500:
  *         description: Internal server error
+ *     securityDefinitions:
+ *       authorization:
+ *         type: apiKey
+ *         in: header
+ *         name: Authorization
+ *         description: "JWT Token required for authentication"
  */
 router.get("/",checkToken,async(req:Request,res:Response):Promise<any>=>{
     const UserID=req.body.UserID.identifire
